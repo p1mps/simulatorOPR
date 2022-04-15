@@ -1,0 +1,36 @@
+{:edge.kick/config
+ {:kick.builder/target #profile {:dev "target/dev"
+                                 :prod "target/prod"}
+  :kick/sass {:builds [{:id "simulator"
+                        :source "simulator.scss"
+                        :target "public/simulator.css"}]}
+  :kick/figwheel-main {:builds [{:id "app"
+                                 :main p1mps.simulator.frontend.main
+                                 :output-to "public/frontend.js"
+                                 :output-dir "public/frontend.out"
+                                 :asset-path "/frontend.out"
+                                 :optimizations #profile {:dev :none
+                                                          :prod :advanced}}]
+                       :figwheel-config
+                       {:ring-server-options
+                        {:port 8500}}}}
+
+ :ig.system/base
+ {:p1mps.simulator.core/army nil
+  [:edge.yada.ig/classpath-name :p1mps.simulator/index] {:name "index.html"}
+  [:edge.yada.ig/resources :p1mps.simulator/assets] {:path "public"}
+  :edge.yada.ig/listener {:handler #ig/ref :edge.bidi.ig/vhost
+                          :port 9600}
+  :edge.bidi.ig/vhost [["http://localhost:9600"
+                        ["/api"
+                         [["/" #ig/ref [:p1mps.simulator/index :edge.yada.ig/classpath-name]]
+                          ;;["/army" #ig/ref :p1mps.simulator.core/string]
+                          ["/army" #ig/ref :p1mps.simulator.core/army]
+                          ["" #ig/ref [:p1mps.simulator/assets :edge.yada.ig/resources]]]]]]}
+
+ :ig.system/dev
+ {:edge.kick/builder #ref [:edge.kick/config]}
+
+ :ig/system #profile {:dev #merge [#ref [:ig.system/base]
+                                   #ref [:ig.system/dev]]
+                      :default #ref [:ig.system/base]}}
