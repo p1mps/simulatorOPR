@@ -34,6 +34,7 @@
                filtered-weapons (remove #(some #{(:name %)} all-replace-what) all-gains)]
            {:name    (:name unit-data)
             :quality (:quality unit-data)
+            :tough  (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
             :defense (:defense unit-data)
             :size    (:size unit-data)
             :combined (:combined unit)
