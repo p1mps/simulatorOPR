@@ -12,17 +12,44 @@
 
 (def army
   (atom
-   {:units  []
-    :race   ""
-    :points 0}))
+   {}))
 
 
 (def api-url
   "https://webapp.onepagerules.com/api/")
 
-(defn get-units-stats! [army-id]
-  (->> (-> (client/get (str api-url "/army-books/" army-id)) :body (json/parse-string true) :units)
-       (map #(select-keys % [:cost :defense :quality]))))
+
+(defn merge-data [units-file api-data]
+  (->> (for [unit units-file]
+         (let [unit-upgrades    (map #(select-keys % [:optionId :upgradeId]) (:selectedUpgrades unit))
+               unit-data        (first (filter #(= (:id unit) (:id %)) (:units api-data)))
+               upgrades         (for [upgrade unit-upgrades]
+                                  (let [selected-upgrade (first (filter #(and (= (:type %) "replace") (= (:uid %) (:upgradeId upgrade)))
+                                                                        (mapcat :sections (:upgradePackages api-data))))
+                                        selected-option  (first (filter #(= (:uid %) (:optionId upgrade)) (:options selected-upgrade)))]
+                                    {:replaceWhat (:replaceWhat selected-upgrade)
+                                     :gains       (:gains selected-option)}))
+               all-replace-what (map :replaceWhat upgrades)
+               all-gains        (mapcat :gains upgrades)
+               filtered-weapons (remove #(some #{(:name %)} all-replace-what) all-gains)]
+           {:name    (:name unit-data)
+            :quality (:quality unit-data)
+            :defense (:defense unit-data)
+            :size    (:size unit-data)
+            :combined (:combined unit)
+            :id      (:id unit-data)
+            :weapons (->> (if (not-empty filtered-weapons)
+                            (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
+                            (:equipment unit-data))
+                          )
+
+            }))
+       (group-by :id)
+       (map (fn [[_ v]]
+              (if (:combined (first v))
+                (assoc (first v) :size (apply + (map :size v)))
+                v)))
+       ))
 
 
 (def army-resource
@@ -40,13 +67,10 @@
            :response (fn [ctx]
                        (let [file (-> ctx :parameters :form :file)
                              json (json/parse-string file true)
-                             ids (map :id (-> json :list :units))
-                             army-id (-> json :armyId)]
-                         (println file)
-                         (swap! army (fn [army]
-                                       (assoc army
-                                              :units ids
-                                              :units-stats (get-units-stats! army-id))))
+                             units-file (-> json :list :units)
+                             army-id (-> json :armyId)
+                             api-data (-> (client/get (str api-url "/army-books/" army-id)) :body (json/parse-string true))]
+                         (reset! army {:units (merge-data units-file api-data)})
                          @army))}}}))
 
 
@@ -57,3 +81,13 @@
 (defmethod ig/init-key ::army
   [_ _]
   army-resource)
+
+
+
+(comment
+
+  (get-units-stats! "z65fgu0l29i4lnlu")
+
+
+
+ )
