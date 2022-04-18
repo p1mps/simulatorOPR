@@ -2,6 +2,7 @@
   (:require
    [cheshire.core :as json]
    [clj-http.client :as client]
+   [clojure.string :as string]
    [integrant.core :as ig]
    [yada.yada :as yada]))
 
@@ -41,17 +42,43 @@
             :id      (:id unit-data)
             :weapons (->> (if (not-empty filtered-weapons)
                             (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
-                            (:equipment unit-data))
-                          )
-
-            }))
+                            (:equipment unit-data)))}))
        (group-by :id)
        (map (fn [[_ v]]
               (if (:combined (first v))
                 (assoc (first v) :size (apply + (map :size v)))
-                v)))
-       ))
+                v)))))
 
+
+(defn roll []
+  (+ 1 (rand-int 6)))
+
+(defn parse-attacks [attacks]
+  (Integer/parseInt (string/replace attacks #"A" "")))
+
+(defn parse-special-rules [rules]
+  (reduce (fn [m rule]
+            (cond
+              (string/includes? rule "AP")
+              (assoc m :ap (Integer/parseInt
+                            (-> (string/replace rule #"AP\(" "")
+                                (string/replace #"\)" ""))))
+              (string/includes? rule "Blast")
+              (assoc m :blast (Integer/parseInt
+                               (-> (string/replace rule #"Blast\(" "")
+                                   (string/replace #"\)" ""))))))
+
+          {}
+          rules
+          ))
+
+(def special-rules
+  ["Blast(6)" "AP(1)"])
+
+
+(parse-special-rules special-rules)
+
+(defn fight [attacker defender])
 
 (def army-resource
  (yada/resource
