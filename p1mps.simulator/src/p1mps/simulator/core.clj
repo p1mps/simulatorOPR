@@ -3,6 +3,7 @@
    [cheshire.core :as json]
    [clj-http.client :as client]
    [clojure.string :as string]
+   [clojure.walk :as walk]
    [integrant.core :as ig]
    [yada.yada :as yada]))
 
@@ -66,19 +67,91 @@
               (string/includes? rule "Blast")
               (assoc m :blast (Integer/parseInt
                                (-> (string/replace rule #"Blast\(" "")
-                                   (string/replace #"\)" ""))))))
+                                   (string/replace #"\)" ""))))
+              (string/includes? rule "Deadly")
+              (assoc m :deadly (Integer/parseInt
+                               (-> (string/replace rule #"Deadly\(" "")
+                                   (string/replace #"\)" "")))))
 
+              )
           {}
-          rules
-          ))
+          rules))
 
 (def special-rules
-  ["Blast(6)" "AP(1)"])
+  ["Blast(6)" "AP(1)" "Deadly(3)"])
 
 
 (parse-special-rules special-rules)
 
-(defn fight [attacker defender])
+(def tank
+  (json/parse-string (slurp "tank.json") true))
+
+(def spacemarine
+  {:name "Space Marine"
+   :defense 3})
+
+(defn wound? [attacker defender]
+  (and (>= (roll) (:quality attacker)) (< (roll) (:defense defender))))
+
+
+(defn fight [attacker defender]
+  (reduce (fn [m weapon]
+            (assoc m
+                   (:name weapon)
+                   (for [_ (range 0 (:attacks weapon))]
+                     (if (wound? attacker defender)
+                       (or (-> weapon :specialRules :blast)
+                           (-> weapon :specialRules :deadly) 1)
+                       0))))
+          {}
+          (map #(update % :specialRules (partial parse-special-rules))
+               (:weapons attacker))))
+
+
+(defn calculate-wounds [fight]
+  (reduce (fn [m [weapon wounds]]
+            (assoc m weapon (apply + wounds)))
+          {}
+          fight))
+
+(defn find-weapon [unit weapon]
+  (first (filter #(= (:name %) weapon) (:weapons unit))))
+
+
+(defn run-experiments [attacker defender n]
+  (->> (repeatedly n #(-> (fight attacker defender)))
+       (reduce (fn [result m]
+                 (merge-with
+                  into result
+                  m))
+               {})
+       (reduce (fn [result [k v]]
+                 (assoc result
+                        k
+                        (partition-all (:attacks (find-weapon attacker k)) v)))
+               {})
+       (reduce (fn [result [k v]]
+                 (assoc result
+                        k
+                        (map (partial apply +) v)))
+               {})
+       (reduce (fn [result [k v]]
+                 (assoc result
+                        k
+                        (float (/ (apply + v) (count v)))))
+               {})
+
+
+       ))
+
+
+
+
+
+
+
+
+
 
 (def army-resource
  (yada/resource
