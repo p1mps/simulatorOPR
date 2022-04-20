@@ -138,20 +138,9 @@
        (reduce (fn [result [k v]]
                  (assoc result
                         k
-                        (float (/ (apply + v) (count v)))))
-               {})
-
-
-       ))
-
-
-
-
-
-
-
-
-
+                        {:average (float (/ (apply + v) (count v)))
+                         :values  v}))
+               {})))
 
 (def army-resource
  (yada/resource
@@ -171,7 +160,7 @@
                              units-file (-> json :list :units)
                              army-id (-> json :armyId)
                              api-data (-> (client/get (str api-url "/army-books/" army-id)) :body (json/parse-string true))]
-                         (reset! army {:units (merge-data units-file api-data)})
+                         (reset! army {:units (flatten (merge-data units-file api-data))})
                          @army))}}}))
 
 

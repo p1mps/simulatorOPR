@@ -22,11 +22,12 @@
   :edge.yada.ig/listener {:handler #ig/ref :edge.bidi.ig/vhost
                           :port 9600}
   :edge.bidi.ig/vhost [["http://localhost:9600"
-                        ["/api"
-                         [["/" #ig/ref [:p1mps.simulator/index :edge.yada.ig/classpath-name]]
-                          ;;["/army" #ig/ref :p1mps.simulator.core/string]
-                          ["/army" #ig/ref :p1mps.simulator.core/army]
-                          ["" #ig/ref [:p1mps.simulator/assets :edge.yada.ig/resources]]]]]]}
+                        [""
+                         [["/api"
+                           [["/army" #ig/ref :p1mps.simulator.core/army]]]
+                          ["/" #ig/ref [:p1mps.simulator/index :edge.yada.ig/classpath-name]]
+                          ["" #ig/ref [:p1mps.simulator/assets :edge.yada.ig/resources]]
+]]]]}
 
  :ig.system/dev
  {:edge.kick/builder #ref [:edge.kick/config]}
