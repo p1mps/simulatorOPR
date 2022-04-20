@@ -16,6 +16,10 @@
   (atom
    {}))
 
+(def army-fight
+  (atom
+   {}))
+
 
 (def api-url
   "https://webapp.onepagerules.com/api/")
@@ -70,18 +74,12 @@
                                    (string/replace #"\)" ""))))
               (string/includes? rule "Deadly")
               (assoc m :deadly (Integer/parseInt
-                               (-> (string/replace rule #"Deadly\(" "")
-                                   (string/replace #"\)" "")))))
+                                (-> (string/replace rule #"Deadly\(" "")
+                                    (string/replace #"\)" "")))))
 
               )
           {}
-          rules))
-
-(def special-rules
-  ["Blast(6)" "AP(1)" "Deadly(3)"])
-
-
-(parse-special-rules special-rules)
+          (map :label rules)))
 
 (def tank
   (json/parse-string (slurp "tank.json") true))
@@ -119,7 +117,7 @@
 
 
 (defn run-experiments [attacker defender n]
-  (->> (repeatedly n #(-> (fight attacker defender)))
+  (->> (repeatedly n #(fight attacker defender))
        (reduce (fn [result m]
                  (merge-with
                   into result
@@ -163,6 +161,29 @@
                          (reset! army {:units (flatten (merge-data units-file api-data))})
                          @army))}}}))
 
+(def fight-resource
+ (yada/resource
+  {:methods
+   {:get
+    {:produces
+     {:media-type "application/json"}
+     :response
+     (fn [_]
+       @army-fight)}
+    :post {:parameters {:form {:attacker-unit String :defender-unit String}}
+           :consumes #{"application/json"}
+           :produces {:media-type "application/json"}
+           :response (fn [ctx]
+                       (println ctx)
+                       (let [attacker-unit (-> ctx :body :attacker-unit)
+                             defender-unit (-> ctx :body :defender-unit)]
+                         (swap! army-fight assoc
+                                :attacker-unit attacker-unit
+                                :defender-unit defender-unit
+                                :fight (run-experiments attacker-unit defender-unit 10))
+
+                         @army-fight))}}}))
+
 
 (defmethod ig/init-key ::string
   [_ x]
@@ -172,12 +193,6 @@
   [_ _]
   army-resource)
 
-
-
-(comment
-
-  (get-units-stats! "z65fgu0l29i4lnlu")
-
-
-
- )
+(defmethod ig/init-key ::fight
+  [_ _]
+  fight-resource)

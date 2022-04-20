@@ -17,6 +17,7 @@
 
  :ig.system/base
  {:p1mps.simulator.core/army nil
+  :p1mps.simulator.core/fight nil
   [:edge.yada.ig/classpath-name :p1mps.simulator/index] {:name "index.html"}
   [:edge.yada.ig/resources :p1mps.simulator/assets] {:path "public"}
   :edge.yada.ig/listener {:handler #ig/ref :edge.bidi.ig/vhost
@@ -24,7 +25,8 @@
   :edge.bidi.ig/vhost [["http://localhost:9600"
                         [""
                          [["/api"
-                           [["/army" #ig/ref :p1mps.simulator.core/army]]]
+                           [["/army" #ig/ref :p1mps.simulator.core/army]
+                            ["/fight" #ig/ref :p1mps.simulator.core/fight]]]
                           ["/" #ig/ref [:p1mps.simulator/index :edge.yada.ig/classpath-name]]
                           ["" #ig/ref [:p1mps.simulator/assets :edge.yada.ig/resources]]
 ]]]]}
