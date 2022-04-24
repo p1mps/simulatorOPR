@@ -3,14 +3,24 @@
    [ajax.core :refer [POST json-response-format json-request-format]]
    [clojure.string :as string]
    [reagent.core :as r]
-   [reagent.dom :as rdom]))
+   [reagent.dom :as rdom]
+
+   )
+)
 
 (defonce app-state (r/atom {}))
 
+@app-state
 
 (defn attacker-upload-ok [resp]
   (swap! app-state assoc :attacker resp)
   (swap! app-state assoc :attacker-unit (first (-> @app-state :attacker :units))))
+
+(defn fight-ok [resp]
+  (swap! app-state assoc :fight (:fight resp)))
+
+(defn fight-error [resp]
+  (println "ERROR!" resp))
 
 (defn defender-upload-ok [resp]
   (swap! app-state assoc :defender resp)
@@ -22,14 +32,54 @@
 (defn defender-upload-error [resp]
   (println "ERROR!" resp))
 
+(defn unit-component [unit]
+  [:table.table
+   [:thead
+    [:tr
+     [:th "Quality"]
+     [:th "Tough"]
+     [:th "Size"]
+     (for [weapon (:weapons unit)]
+      [:th (:name weapon)])]
+    ]
+   [:tbody
+    [:tr
+     [:th (:quality unit)]
+     [:th (:tough unit)]
+     [:th (:size unit)]
+
+     (for [weapon (:weapons unit)]
+       [:th (str "Attacks " (:attacks weapon) (string/join " "
+                                                           (map :label
+                                                                (:specialRules weapon))) )]
+         )
+
+     ]
+
+
+
+    ]]
+
+  )
+
+
 (defn upload-form [army]
   )
 (defn clj->json
   [ds]
   (.stringify js/JSON (clj->js ds)))
 
+(def pie-data [{:value 30 :label "time"}
+               {:value 30 :label "pizza"}
+               {:value 25 :label "freinds"}
+               {:value 20 :label "country man"}
+               {:value 10 :label "fore fathers"}
+               {:value 10 :label "nice guys"}
+               {:value 5  :label "dudes"}])
+
+
 (defn app-components []
-  [:div [:form {:method   "POST"}
+  [:div [:form {:method "POST"}
          [:div.file.field
           [:label.file-label
            [:input.file-input {:id        "Attacker army"
@@ -85,7 +135,9 @@
                         (swap! app-state assoc :attacker-unit unit)))}
         (for [unit (-> @app-state :attacker :units)]
           [:option {:value (:id unit)} (:name unit)])]]
-      [:p (str (-> @app-state :attacker-unit))]])
+      [:div
+       (unit-component (-> @app-state :attacker-unit))]]
+     )
 
    (when (:defender-unit @app-state)
          [:div.column
@@ -98,8 +150,11 @@
             (for [unit (-> @app-state :defender :units)]
               [:option {:value (:id unit)} (:name unit)])
             ]]
-          [:p (str (-> @app-state :defender-unit))]
-          ])
+          [:div
+           (unit-component (-> @app-state :defender-unit))]
+
+          ]
+         )
 
    (when (and (:attacker-unit @app-state) (:defender-unit @app-state))
      [:div.column
@@ -108,13 +163,22 @@
         {:on-click (fn [ev]
                      (.preventDefault ev)
                      (POST "/api/fight" {:params   (select-keys @app-state [:attacker-unit :defender-unit])
+                                         :handler         fight-ok
+                                         :error-handler   fight-error
                                          :format :json
                                          :response-format (json-response-format {:keywords? true})})
                      )}
-        "Fight!"]]])
+        "Fight!"]]
+
+      (for [[weapon wounds] (-> @app-state :fight)]
+        [:p (str (name weapon) " average wounds:" (:average wounds) " " (:values wounds))]
+        )
+
+      ])])
 
 
-   ])
+
+
 
 
 ;; This is called once

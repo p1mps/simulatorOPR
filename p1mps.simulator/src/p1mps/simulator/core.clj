@@ -89,7 +89,16 @@
    :defense 3})
 
 (defn wound? [attacker defender]
-  (and (>= (roll) (:quality attacker)) (< (roll) (:defense defender))))
+  (let [roll-attacker (roll)
+        roll-defender (roll)]
+    (and (or
+          ;; 6 is always success
+          (= roll-attacker 6)
+          (>= roll-attacker (:quality attacker)))
+         (or
+          ;; 1 is always failure
+          (= roll-defender 1)
+          (< roll-defender (:defense defender))))))
 
 
 (defn fight [attacker defender]
@@ -174,7 +183,6 @@
            :consumes #{"application/json"}
            :produces {:media-type "application/json"}
            :response (fn [ctx]
-                       (println ctx)
                        (let [attacker-unit (-> ctx :body :attacker-unit)
                              defender-unit (-> ctx :body :defender-unit)]
                          (swap! army-fight assoc
