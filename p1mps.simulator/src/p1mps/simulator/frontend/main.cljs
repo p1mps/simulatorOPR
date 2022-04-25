@@ -1,14 +1,16 @@
 (ns ^:figwheel-hooks p1mps.simulator.frontend.main
   (:require
-   [ajax.core :refer [POST json-response-format json-request-format]]
+   [ajax.core :refer [json-request-format json-response-format POST]]
+   [b1.charts :as charts]
+   [b1.svg :as svg]
    [clojure.string :as string]
    [reagent.core :as r]
    [reagent.dom :as rdom]
-
-   )
-)
+   ))
 
 (defonce app-state (r/atom {}))
+(def data (take 100 (repeatedly rand)))
+
 
 @app-state
 
@@ -17,7 +19,11 @@
   (swap! app-state assoc :attacker-unit (first (-> @app-state :attacker :units))))
 
 (defn fight-ok [resp]
-  (swap! app-state assoc :fight (:fight resp)))
+  (swap! app-state
+         assoc
+         :fight (:fight resp)
+         :stats (:stats resp)
+         ))
 
 (defn fight-error [resp]
   (println "ERROR!" resp))
@@ -37,45 +43,23 @@
    [:thead
     [:tr
      [:th "Quality"]
+     [:th "Defense"]
      [:th "Tough"]
      [:th "Size"]
      (for [weapon (:weapons unit)]
-      [:th (:name weapon)])]
-    ]
+       [:th (:name weapon)])
+     [:th "Special Rules"]]]
    [:tbody
     [:tr
      [:th (:quality unit)]
+     [:th (:defense unit)]
      [:th (:tough unit)]
      [:th (:size unit)]
-
      (for [weapon (:weapons unit)]
-       [:th (str "Attacks " (:attacks weapon) (string/join " "
-                                                           (map :label
-                                                                (:specialRules weapon))) )]
-         )
-
-     ]
-
-
-
-    ]]
-
-  )
-
-
-(defn upload-form [army]
-  )
-(defn clj->json
-  [ds]
-  (.stringify js/JSON (clj->js ds)))
-
-(def pie-data [{:value 30 :label "time"}
-               {:value 30 :label "pizza"}
-               {:value 25 :label "freinds"}
-               {:value 20 :label "country man"}
-               {:value 10 :label "fore fathers"}
-               {:value 10 :label "nice guys"}
-               {:value 5  :label "dudes"}])
+       [:th (str "Attacks "
+                 (:attacks weapon) " "
+                 (string/join " " (map :label (:specialRules weapon))))])
+     [:th (map #(str (:name %) " " (:rating %)) (:special-rules unit))]]]])
 
 
 (defn app-components []
@@ -171,8 +155,18 @@
         "Fight!"]]
 
       (for [[weapon wounds] (-> @app-state :fight)]
-        [:p (str (name weapon) " average wounds:" (:average wounds) " " (:values wounds))]
+        [:div {:id weapon}
+         [:p (str (name weapon) " expected wounds " (:mean (:stats wounds))) ]
+         ]
         )
+
+
+
+
+
+
+
+
 
       ])])
 

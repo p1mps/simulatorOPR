@@ -4,6 +4,7 @@
    [clj-http.client :as client]
    [clojure.string :as string]
    [clojure.walk :as walk]
+   [com.stuartsierra.frequencies :as freq]
    [integrant.core :as ig]
    [yada.yada :as yada]))
 
@@ -44,6 +45,7 @@
             :defense (:defense unit-data)
             :size    (:size unit-data)
             :combined (:combined unit)
+            :special-rules (map #(select-keys % [:name :rating]) (:specialRules unit-data))
             :id      (:id unit-data)
             :weapons (->> (if (not-empty filtered-weapons)
                             (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
@@ -55,7 +57,10 @@
                 v)))))
 
 
-(defn roll []
+(defn roll-attacker []
+  (+ 1 (rand-int 6)))
+
+(defn roll-defender []
   (+ 1 (rand-int 6)))
 
 (defn parse-attacks [attacks]
@@ -63,56 +68,81 @@
 
 (defn parse-special-rules [rules]
   (reduce (fn [m rule]
-            (cond
-              (string/includes? rule "AP")
-              (assoc m :ap (Integer/parseInt
-                            (-> (string/replace rule #"AP\(" "")
-                                (string/replace #"\)" ""))))
-              (string/includes? rule "Blast")
-              (assoc m :blast (Integer/parseInt
-                               (-> (string/replace rule #"Blast\(" "")
-                                   (string/replace #"\)" ""))))
-              (string/includes? rule "Deadly")
-              (assoc m :deadly (Integer/parseInt
-                                (-> (string/replace rule #"Deadly\(" "")
-                                    (string/replace #"\)" "")))))
+            (when rule
+              (cond
+                (string/includes? rule "AP")
+                (assoc m :ap (Integer/parseInt
+                              (-> (string/replace rule #"AP\(" "")
+                                  (string/replace #"\)" ""))))
+                (string/includes? rule "Blast")
+                (assoc m :blast (Integer/parseInt
+                                 (-> (string/replace rule #"Blast\(" "")
+                                     (string/replace #"\)" ""))))
+                (string/includes? rule "Deadly")
+                (assoc m :deadly (Integer/parseInt
+                                  (-> (string/replace rule #"Deadly\(" "")
+                                      (string/replace #"\)" ""))))
+                (string/includes? rule "Impact")
+                (assoc m :impact (Integer/parseInt
+                                  (-> (string/replace rule #"Impact\(" "")
+                                      (string/replace #"\)" ""))))
+                ))
 
               )
           {}
           (map :label rules)))
 
-(def tank
-  (json/parse-string (slurp "tank.json") true))
+(defn hit? [attacker roll]
+  (or
+   ;; 6 is always success
+   (= roll 6)
+   (>= roll (:quality attacker))))
 
-(def spacemarine
-  {:name "Space Marine"
-   :defense 3})
+(defn not-defended? [defender weapon roll]
+  ;; 1 is always failure
+  (or (= roll 1)
+      (< roll (- (:defense defender)
+                 (or (-> weapon :specialRules :ap) 0)))))
 
-(defn wound? [attacker defender]
-  (let [roll-attacker (roll)
-        roll-defender (roll)]
-    (and (or
-          ;; 6 is always success
-          (= roll-attacker 6)
-          (>= roll-attacker (:quality attacker)))
-         (or
-          ;; 1 is always failure
-          (= roll-defender 1)
-          (< roll-defender (:defense defender))))))
+(defn wound? [attacker defender weapon]
+  (let [roll-attacker (roll-attacker)
+        roll-defender (roll-defender)]
+    (and
+     (hit? attacker roll-attacker)
+     (not-defended? defender weapon roll-defender))))
 
+(defn weapon-damage [weapon]
+  (or (-> weapon :specialRules :blast)
+      (-> weapon :specialRules :deadly)
+      1))
+
+(defn parse-weapons [attacker]
+  (map #(update %
+                :specialRules
+                (partial parse-special-rules))
+       (:weapons attacker)))
+
+
+(defn roll-for-impact [attacker defender weapon]
+  (for [_ (range 0 (* (or (:size attacker) 1) (-> weapon :specialRules :impact)))]
+    (let [roll-defender (roll-defender)]
+      (if (not-defended? defender weapon roll-defender)
+        (weapon-damage weapon)
+        0))))
 
 (defn fight [attacker defender]
   (reduce (fn [m weapon]
-            (assoc m
-                   (:name weapon)
-                   (for [_ (range 0 (:attacks weapon))]
-                     (if (wound? attacker defender)
-                       (or (-> weapon :specialRules :blast)
-                           (-> weapon :specialRules :deadly) 1)
-                       0))))
+            (let [wounds (for [_ (range 0 (+ (* (or (:size attacker) 1) (:attacks weapon))))]
+                           (if (wound? attacker defender weapon)
+                             (weapon-damage weapon)
+                             0))]
+              (assoc m
+                     (:name weapon)
+                     (if (-> weapon :specialRules :impact)
+                       (concat wounds (roll-for-impact attacker defender weapon))
+                       wounds))))
           {}
-          (map #(update % :specialRules (partial parse-special-rules))
-               (:weapons attacker))))
+          (parse-weapons attacker)))
 
 
 (defn calculate-wounds [fight]
@@ -145,9 +175,12 @@
        (reduce (fn [result [k v]]
                  (assoc result
                         k
-                        {:average (float (/ (apply + v) (count v)))
-                         :values  v}))
-               {})))
+                        {:values  v
+                         :stats (freq/stats (frequencies v))}))
+               {})
+
+
+       ))
 
 (def army-resource
  (yada/resource
@@ -184,11 +217,12 @@
            :produces {:media-type "application/json"}
            :response (fn [ctx]
                        (let [attacker-unit (-> ctx :body :attacker-unit)
-                             defender-unit (-> ctx :body :defender-unit)]
+                             defender-unit (-> ctx :body :defender-unit)
+                             fight (run-experiments attacker-unit defender-unit 100000)]
                          (swap! army-fight assoc
                                 :attacker-unit attacker-unit
                                 :defender-unit defender-unit
-                                :fight (run-experiments attacker-unit defender-unit 10))
+                                :fight fight)
 
                          @army-fight))}}}))
 
