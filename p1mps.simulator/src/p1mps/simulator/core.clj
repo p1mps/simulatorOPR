@@ -130,54 +130,81 @@
         (weapon-damage weapon)
         0))))
 
-(defn fight [attacker defender]
-  (reduce (fn [m weapon]
-            (let [wounds (for [_ (range 0 (+ (* (or (:size attacker) 1) (:attacks weapon))))]
-                           (if (wound? attacker defender weapon)
-                             (weapon-damage weapon)
-                             0))]
-              (assoc m
-                     (:name weapon)
-                     (if (-> weapon :specialRules :impact)
-                       (concat wounds (roll-for-impact attacker defender weapon))
-                       wounds))))
-          {}
-          (parse-weapons attacker)))
 
+(comment (reduce (fn [m weapon]
+                     (let [wounds (for [_ (range 0 (+ (* (or (:size attacker) 1) (:attacks weapon))))]
+                                    (if (wound? attacker defender weapon)
+                                      (weapon-damage weapon)
+                                      0))]
+                       (assoc m
+                              (:name weapon)
+                              (if (-> weapon :specialRules :impact)
+                                (concat wounds (roll-for-impact attacker defender weapon))
+                                wounds))))
+                   {}
+                   (parse-weapons attacker)))
 
-(defn calculate-wounds [fight]
-  (reduce (fn [m [weapon wounds]]
-            (assoc m weapon (apply + wounds)))
+(defn sum-wounds [fight]
+  (reduce-kv (fn [m k v]
+               (assoc m k (list (apply + v))))
           {}
           fight))
+
+(defn fight [attacker defender]
+  (->
+   (apply
+    merge-with
+    into
+    (for [_      (range 0 (:size attacker))
+          weapon (:weapons attacker)]
+      {(:name weapon)
+       (if (hit? attacker (roll-attacker))
+         (for [_ (range 0 (or (-> weapon :specialRules :blast) 1))]
+           (if (not-defended? defender weapon (roll-defender))
+             (or (-> weapon :specialRules :deadly) 1)
+             0))
+         '(0))}))
+   (sum-wounds)))
+
+
+
 
 (defn find-weapon [unit weapon]
   (first (filter #(= (:name %) weapon) (:weapons unit))))
 
 
+
+(comment (reduce (fn [result m]
+                          (merge-with
+                           into result
+                           m))
+                        {})
+                (reduce (fn [result [k v]]
+                          (assoc result
+                                 k
+                                 (partition-all (:attacks (find-weapon attacker k)) v)))
+                        {})
+                (reduce (fn [result [k v]]
+                          (assoc result
+                                 k
+                                 (map (partial apply +) v)))
+                        {})
+                (reduce (fn [result [k v]]
+                          (assoc result
+                                 k
+                                 {:values v
+                                  :stats  (freq/stats (frequencies v))}))
+                        {}))
+
 (defn run-experiments [attacker defender n]
   (->> (repeatedly n #(fight attacker defender))
-       (reduce (fn [result m]
-                 (merge-with
-                  into result
-                  m))
-               {})
+       (apply merge-with concat)
        (reduce (fn [result [k v]]
                  (assoc result
                         k
-                        (partition-all (:attacks (find-weapon attacker k)) v)))
-               {})
-       (reduce (fn [result [k v]]
-                 (assoc result
-                        k
-                        (map (partial apply +) v)))
-               {})
-       (reduce (fn [result [k v]]
-                 (assoc result
-                        k
-                        {:values  v
-                         :stats (freq/stats (frequencies v))}))
-               {})
+                        {:values v
+                         :stats  (freq/stats (frequencies v))}))
+                        {})
 
 
        ))
@@ -218,7 +245,7 @@
            :response (fn [ctx]
                        (let [attacker-unit (-> ctx :body :attacker-unit)
                              defender-unit (-> ctx :body :defender-unit)
-                             fight (run-experiments attacker-unit defender-unit 100000)]
+                             fight (run-experiments attacker-unit defender-unit 100)]
                          (swap! army-fight assoc
                                 :attacker-unit attacker-unit
                                 :defender-unit defender-unit

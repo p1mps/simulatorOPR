@@ -56,10 +56,11 @@
      [:th (:tough unit)]
      [:th (:size unit)]
      (for [weapon (:weapons unit)]
-       [:th (str "Attacks "
-                 (:attacks weapon) " "
-                 (string/join " " (map :label (:specialRules weapon))))])
-     [:th (map #(str (:name %) " " (:rating %)) (:special-rules unit))]]]])
+       (let [labels (remove nil? (map :label (:specialRules weapon)))]
+         [:th (str "Attacks "
+                   (:attacks weapon) " "
+                   (string/join " " labels))]))
+     [:th (map #(str " " (:name %) " " (:rating %)) (:special-rules unit))]]]])
 
 
 (defn app-components []
