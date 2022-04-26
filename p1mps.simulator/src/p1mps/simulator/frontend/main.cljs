@@ -60,7 +60,7 @@
          [:th (str "Attacks "
                    (:attacks weapon) " "
                    (string/join " " labels))]))
-     [:th (map #(str " " (:name %) " " (:rating %)) (:special-rules unit))]]]])
+     [:th (map #(str " " (:name %) " " (:rating %)) (:specialRules unit))]]]])
 
 
 (defn app-components []
@@ -158,6 +158,7 @@
       (for [[weapon wounds] (-> @app-state :fight)]
         [:div {:id weapon}
          [:p (str (name weapon) " expected wounds " (:mean (:stats wounds))) ]
+         [:p (str (name weapon) " expected wounds " wounds) ]
          ]
         )
 

@@ -22,7 +22,8 @@
   com.stuartsierra/frequencies {:mvn/version "0.1.0"}}
 
  :aliases
- {:dev
+ {:test {:extra-paths ["test"]}
+  :dev
   {:extra-paths ["dev"]
    :extra-deps
    {juxt.edge/lib.app.dev {:local/root "../lib/edge.app.dev"}}}

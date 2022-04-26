@@ -12,6 +12,7 @@
   [x]
   (yada/as-resource x))
 
+(def NUM_EXPERIMENTS 1000)
 
 (def army
   (atom
@@ -24,47 +25,6 @@
 
 (def api-url
   "https://webapp.onepagerules.com/api/")
-
-
-(defn merge-data [units-file api-data]
-  (->> (for [unit units-file]
-         (let [unit-upgrades    (map #(select-keys % [:optionId :upgradeId]) (:selectedUpgrades unit))
-               unit-data        (first (filter #(= (:id unit) (:id %)) (:units api-data)))
-               upgrades         (for [upgrade unit-upgrades]
-                                  (let [selected-upgrade (first (filter #(and (= (:type %) "replace") (= (:uid %) (:upgradeId upgrade)))
-                                                                        (mapcat :sections (:upgradePackages api-data))))
-                                        selected-option  (first (filter #(= (:uid %) (:optionId upgrade)) (:options selected-upgrade)))]
-                                    {:replaceWhat (:replaceWhat selected-upgrade)
-                                     :gains       (:gains selected-option)}))
-               all-replace-what (map :replaceWhat upgrades)
-               all-gains        (mapcat :gains upgrades)
-               filtered-weapons (remove #(some #{(:name %)} all-replace-what) all-gains)]
-           {:name    (:name unit-data)
-            :quality (:quality unit-data)
-            :tough  (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
-            :defense (:defense unit-data)
-            :size    (:size unit-data)
-            :combined (:combined unit)
-            :special-rules (map #(select-keys % [:name :rating]) (:specialRules unit-data))
-            :id      (:id unit-data)
-            :weapons (->> (if (not-empty filtered-weapons)
-                            (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
-                            (:equipment unit-data)))}))
-       (group-by :id)
-       (map (fn [[_ v]]
-              (if (:combined (first v))
-                (assoc (first v) :size (apply + (map :size v)))
-                v)))))
-
-
-(defn roll-attacker []
-  (+ 1 (rand-int 6)))
-
-(defn roll-defender []
-  (+ 1 (rand-int 6)))
-
-(defn parse-attacks [attacks]
-  (Integer/parseInt (string/replace attacks #"A" "")))
 
 (defn parse-special-rules [rules]
   (reduce (fn [m rule]
@@ -86,11 +46,65 @@
                 (assoc m :impact (Integer/parseInt
                                   (-> (string/replace rule #"Impact\(" "")
                                       (string/replace #"\)" ""))))
-                ))
+                :else
+                m))
 
               )
           {}
           (map :label rules)))
+
+(defn parse-weapons [weapons]
+  (map #(update %
+                :specialRules
+                (partial parse-special-rules))
+       weapons))
+
+(defn merge-data [units-file api-data]
+  (->> (for [unit units-file]
+         (let [unit-upgrades    (map #(select-keys % [:optionId :upgradeId]) (:selectedUpgrades unit))
+               unit-data        (first (filter #(= (:id unit) (:id %)) (:units api-data)))
+               upgrades         (for [upgrade unit-upgrades]
+                                  (let [selected-upgrade (first (filter #(and (= (:type %) "replace") (= (:uid %) (:upgradeId upgrade)))
+                                                                        (mapcat :sections (:upgradePackages api-data))))
+                                        selected-option  (first (filter #(= (:uid %) (:optionId upgrade)) (:options selected-upgrade)))]
+                                    {:replaceWhat (:replaceWhat selected-upgrade)
+                                     :gains       (:gains selected-option)}))
+               all-replace-what (map :replaceWhat upgrades)
+               all-gains        (mapcat :gains upgrades)
+               filtered-weapons (remove #(some #{(:name %)} all-replace-what) all-gains)]
+           {:name    (:name unit-data)
+            :quality (:quality unit-data)
+            :tough  (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
+            :defense (:defense unit-data)
+            :size    (:size unit-data)
+            :combined (:combined unit)
+            :specialRules (map #(select-keys % [:name :rating :label]) (:specialRules unit-data))
+            :id      (:id unit-data)
+            :weapons (->> (if (not-empty filtered-weapons)
+                            (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
+                            (:equipment unit-data)))}))
+       (group-by :id)
+       (map (fn [[_ v]]
+              (if (:combined (first v))
+                (assoc (first v) :size (apply + (map :size v)))
+                v)))))
+
+
+(defn roll-attacker []
+  (+ 1 (rand-int 6))
+  ;;6
+  )
+
+(defn roll-defender []
+  (+ 1 (rand-int 6))
+  ;;1
+
+  )
+
+(defn parse-attacks [attacks]
+  (Integer/parseInt (string/replace attacks #"A" "")))
+
+
 
 (defn hit? [attacker roll]
   (or
@@ -98,51 +112,34 @@
    (= roll 6)
    (>= roll (:quality attacker))))
 
-(defn not-defended? [defender weapon roll]
+(defn save? [defender weapon roll]
   ;; 1 is always failure
-  (or (= roll 1)
-      (< roll (- (:defense defender)
-                 (or (-> weapon :specialRules :ap) 0)))))
+  (or (= roll 6)
+      (>= roll (+ (:defense defender)
+                  (or (-> weapon :specialRules :ap) 0)))))
 
 (defn wound? [attacker defender weapon]
   (let [roll-attacker (roll-attacker)
         roll-defender (roll-defender)]
     (and
      (hit? attacker roll-attacker)
-     (not-defended? defender weapon roll-defender))))
+     (not (save? defender weapon roll-defender)))))
 
 (defn weapon-damage [weapon]
   (or (-> weapon :specialRules :blast)
       (-> weapon :specialRules :deadly)
       1))
 
-(defn parse-weapons [attacker]
-  (map #(update %
-                :specialRules
-                (partial parse-special-rules))
-       (:weapons attacker)))
+
 
 
 (defn roll-for-impact [attacker defender weapon]
   (for [_ (range 0 (* (or (:size attacker) 1) (-> weapon :specialRules :impact)))]
     (let [roll-defender (roll-defender)]
-      (if (not-defended? defender weapon roll-defender)
+      (if (save? defender weapon roll-defender)
         (weapon-damage weapon)
         0))))
 
-
-(comment (reduce (fn [m weapon]
-                     (let [wounds (for [_ (range 0 (+ (* (or (:size attacker) 1) (:attacks weapon))))]
-                                    (if (wound? attacker defender weapon)
-                                      (weapon-damage weapon)
-                                      0))]
-                       (assoc m
-                              (:name weapon)
-                              (if (-> weapon :specialRules :impact)
-                                (concat wounds (roll-for-impact attacker defender weapon))
-                                wounds))))
-                   {}
-                   (parse-weapons attacker)))
 
 (defn sum-wounds [fight]
   (reduce-kv (fn [m k v]
@@ -156,11 +153,12 @@
     merge-with
     into
     (for [_      (range 0 (:size attacker))
-          weapon (:weapons attacker)]
+          weapon (parse-weapons (:weapons attacker))
+          _ (range 0 (:attacks weapon))]
       {(:name weapon)
        (if (hit? attacker (roll-attacker))
          (for [_ (range 0 (or (-> weapon :specialRules :blast) 1))]
-           (if (not-defended? defender weapon (roll-defender))
+           (if (not (save? defender weapon (roll-defender)))
              (or (-> weapon :specialRules :deadly) 1)
              0))
          '(0))}))
@@ -174,27 +172,7 @@
 
 
 
-(comment (reduce (fn [result m]
-                          (merge-with
-                           into result
-                           m))
-                        {})
-                (reduce (fn [result [k v]]
-                          (assoc result
-                                 k
-                                 (partition-all (:attacks (find-weapon attacker k)) v)))
-                        {})
-                (reduce (fn [result [k v]]
-                          (assoc result
-                                 k
-                                 (map (partial apply +) v)))
-                        {})
-                (reduce (fn [result [k v]]
-                          (assoc result
-                                 k
-                                 {:values v
-                                  :stats  (freq/stats (frequencies v))}))
-                        {}))
+
 
 (defn run-experiments [attacker defender n]
   (->> (repeatedly n #(fight attacker defender))
@@ -245,7 +223,7 @@
            :response (fn [ctx]
                        (let [attacker-unit (-> ctx :body :attacker-unit)
                              defender-unit (-> ctx :body :defender-unit)
-                             fight (run-experiments attacker-unit defender-unit 100)]
+                             fight (run-experiments attacker-unit defender-unit NUM_EXPERIMENTS)]
                          (swap! army-fight assoc
                                 :attacker-unit attacker-unit
                                 :defender-unit defender-unit
