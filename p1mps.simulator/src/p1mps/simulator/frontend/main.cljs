@@ -1,36 +1,29 @@
 (ns ^:figwheel-hooks p1mps.simulator.frontend.main
   (:require
    [ajax.core :refer [json-request-format json-response-format POST]]
-   [b1.charts :as charts]
-   [b1.svg :as svg]
    [clojure.string :as string]
    [reagent.core :as r]
    [reagent.dom :as rdom]
    ))
 
 (defonce app-state (r/atom {}))
-(def data (take 100 (repeatedly rand)))
-
-
-@app-state
 
 (defn attacker-upload-ok [resp]
   (swap! app-state assoc :attacker resp)
-  (swap! app-state assoc :attacker-unit (first (-> @app-state :attacker :units))))
+  (swap! app-state assoc :attacker-selected (first (-> @app-state :attacker))))
 
 (defn fight-ok [resp]
   (swap! app-state
          assoc
          :fight (:fight resp)
-         :stats (:stats resp)
-         ))
+         :stats (:stats resp)))
 
 (defn fight-error [resp]
   (println "ERROR!" resp))
 
 (defn defender-upload-ok [resp]
   (swap! app-state assoc :defender resp)
-  (swap! app-state assoc :defender-unit (first (-> @app-state :defender :units))))
+  (swap! app-state assoc :defender-selected (first (-> @app-state :defender))))
 
 (defn attacker-upload-error [resp]
   (println "ERROR!" resp))
@@ -38,29 +31,30 @@
 (defn defender-upload-error [resp]
   (println "ERROR!" resp))
 
-(defn unit-component [unit]
-  [:table.table
-   [:thead
-    [:tr
-     [:th "Quality"]
-     [:th "Defense"]
-     [:th "Tough"]
-     [:th "Size"]
-     (for [weapon (:weapons unit)]
-       [:th (:name weapon)])
-     [:th "Special Rules"]]]
-   [:tbody
-    [:tr
-     [:th (:quality unit)]
-     [:th (:defense unit)]
-     [:th (:tough unit)]
-     [:th (:size unit)]
-     (for [weapon (:weapons unit)]
-       (let [labels (remove nil? (map :label (:specialRules weapon)))]
-         [:th (str "Attacks "
-                   (:attacks weapon) " "
-                   (string/join " " labels))]))
-     [:th (map #(str " " (:name %) " " (:rating %)) (:specialRules unit))]]]])
+(defn unit-component [units]
+  (for [unit units]
+    [:table.table
+     [:thead
+      [:tr
+       [:th "Quality"]
+       [:th "Defense"]
+       [:th "Tough"]
+       [:th "Size"]
+       (for [weapon (:weapons unit)]
+         [:th (:name weapon)])
+       [:th "Special Rules"]]]
+     [:tbody
+      [:tr
+       [:th (:quality unit)]
+       [:th (:defense unit)]
+       [:th (:tough unit)]
+       [:th (:size unit)]
+       (for [weapon (:weapons unit)]
+         (let [labels (remove nil? (map :label (:specialRules weapon)))]
+           [:th (str "Attacks "
+                     (:attacks weapon) " "
+                     (string/join " " labels))]))
+       [:th (map #(str " " (:name %) " " (:rating %)) (:specialRules unit))]]]]))
 
 
 (defn app-components []
@@ -110,44 +104,49 @@
             [:span.file-label "Defender army"]]
            [:span.file-name (last (string/split (get @app-state "Defender army") "\\"))]]]]
 
-   (when (:attacker-unit @app-state)
+   (when (:attacker-selected @app-state)
      [:div.column
       [:div.select
        [:select
         {:on-change (fn [e]
                       (let [id   (-> e .-target .-value)
-                            unit (first (filter #(= (:id %) id) (-> @app-state :attacker :units)))]
-                        (swap! app-state assoc :attacker-unit unit)))}
-        (for [unit (-> @app-state :attacker :units)]
-          [:option {:value (:id unit)} (:name unit)])]]
+                            unit (first
+                                  (->> (-> @app-state :attacker)
+                                       (filter (fn [v]
+                                                 (some (comp #{id} :id) v)))))]
+                        (println id " " unit)
+                        (swap! app-state assoc :attacker-selected unit)))}
+        (for [unit (:attacker @app-state)]
+          [:option {:value (:id (first unit))} (:name (first unit))])]]
       [:div
-       (unit-component (-> @app-state :attacker-unit))]]
-     )
+       (unit-component (:attacker-selected @app-state))]])
 
-   (when (:defender-unit @app-state)
-         [:div.column
-          [:div.select
-           [:select
-            {:on-change (fn [e]
-                          (let [id   (-> e .-target .-value)
-                                unit (first (filter #(= (:id %) id) (-> @app-state :defender :units)))]
-                            (swap! app-state assoc :defender-unit unit)))}
-            (for [unit (-> @app-state :defender :units)]
-              [:option {:value (:id unit)} (:name unit)])
-            ]]
-          [:div
-           (unit-component (-> @app-state :defender-unit))]
+   (when (:defender-selected @app-state)
+     [:div.column
+      [:div.select
+       [:select
+        {:on-change (fn [e]
+                      (let [id   (-> e .-target .-value)
+                            unit (first
+                                  (->> (-> @app-state :defender)
+                                       (filter (fn [v]
+                                                 (some (comp #{id} :id) v)))))]
+                        (println id " " unit)
+                        (swap! app-state assoc :defender-selected unit)))}
+        (for [unit (:defender @app-state)]
+          [:option {:value (:id (first unit))} (:name (first unit))])]]
+      [:div
+       (unit-component (:defender-selected @app-state))]])
 
-          ]
-         )
 
-   (when (and (:attacker-unit @app-state) (:defender-unit @app-state))
+
+   (when (and (:attacker-selected @app-state) (:defender-selected @app-state))
      [:div.column
       [:div.field
        [:button.button
         {:on-click (fn [ev]
                      (.preventDefault ev)
-                     (POST "/api/fight" {:params   (select-keys @app-state [:attacker-unit :defender-unit])
+                     (POST "/api/fight" {:params   (select-keys @app-state [:attacker-selected :defender-selected])
                                          :handler         fight-ok
                                          :error-handler   fight-error
                                          :format :json
@@ -158,7 +157,7 @@
       (for [[weapon wounds] (-> @app-state :fight)]
         [:div {:id weapon}
          [:p (str (name weapon) " expected wounds " (:mean (:stats wounds))) ]
-         [:p (str (name weapon) " expected wounds " wounds) ]
+         ;;[:p (str (name weapon) " expected wounds " wounds) ]
          ]
         )
 

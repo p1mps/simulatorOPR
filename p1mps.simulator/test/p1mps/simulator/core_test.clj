@@ -1,4 +1,4 @@
-(ns p1mps.simulator.core-test
+(ns p1mps.simulator.test.core-test
   (:require  [clojure.test :refer :all]
              [p1mps.simulator.core :as sut]))
 
@@ -11,31 +11,39 @@
 
 (def tank
   {:quality 4
-   :size 1
-   :weapons [{:name "cannon"
-              :attacks 1
+   :size    1
+   :weapons [{:name         "cannon"
+              :attacks      1
               :specialRules [{:label "Blast(3)"}]}]})
+
+(def tank-mega-blast
+  {:quality 4
+   :size    1
+   :weapons [{:name         "cannon"
+              :attacks      1
+              :specialRules [{:label "Blast(6)"}]}]})
 
 (def guardsman
   {:quality 5
-   :size 1
-   :weapons [{:name "gun"
-              :attacks 1
+   :size    1
+   :weapons [{:name         "gun"
+              :attacks      1
               :specialRules []}]})
 
 
 (def guardsmen
   {:quality 5
-   :size 2
-   :weapons [{:name "gun"
-              :attacks 1
+   :size    2
+   :weapons [{:name         "gun"
+              :attacks      1
               :specialRules []}
-             {:name "ccw"
-              :attacks 1
+             {:name         "ccw"
+              :attacks      1
               :specialRules []}]})
 
 (def spacemarine
-  {:defense 3})
+  {:size 3
+   :defense 3})
 
 
 (deftest parse-special-rules
@@ -65,16 +73,20 @@
   (testing "fighting without size with all hits"
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
-      (is (= {"gun" '(1)} (sut/fight guardsman spacemarine)))))
+      (is (= {"gun" '(1)} (sut/fight [guardsman] [spacemarine])))))
   (testing "fighting with size with all hits"
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
       (is (= {"gun" '(2)
-              "ccw" '(2)} (sut/fight guardsmen spacemarine)))))
+              "ccw" '(2)} (sut/fight [guardsmen] [spacemarine])))))
   (testing "fighting with blast weapon"
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
-      (is (= {"cannon" [3]} (sut/fight tank spacemarine))))))
+      (is (= {"cannon" [3]} (sut/fight [tank] [spacemarine])))))
+  (testing "fighting with mega blast weapon"
+    (with-redefs [sut/roll-attacker (fn [] 6)
+                  sut/roll-defender (fn [] 2)]
+      (is (= {"cannon" [3]} (sut/fight [tank-mega-blast] [spacemarine]))))))
 
 
 (deftest run-experiments
@@ -105,13 +117,27 @@
                 :variance     0.0,
                 :stdev        0.0,
                 :sum          4.0}}}
-             (sut/run-experiments guardsmen spacemarine 2))))))
+             (sut/run-experiments [guardsmen] [spacemarine] 2))))))
 
 (deftest save?
   (testing "defended with roll of 6"
     (is (= true (sut/save? spacemarine {} 6))))
   (testing "defended with no ap"
     (is (= true (sut/save? spacemarine {} 3)))))
+
+
+(def army-edn (read-string (slurp "army.edn")))
+
+(deftest parse-file
+  (testing "parse file correctly"
+    (is (= army-edn (sut/parse-file (slurp "army.json"))))))
+
+
+(deftest merge-data
+  (testing "merges data correctly"
+    ))
+
+(sut/merge-data (:units-file army-edn) (:api-data army-edn))
 
 
 (run-tests)

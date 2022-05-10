@@ -72,22 +72,26 @@
                all-replace-what (map :replaceWhat upgrades)
                all-gains        (mapcat :gains upgrades)
                filtered-weapons (remove #(some #{(:name %)} all-replace-what) all-gains)]
-           {:name    (:name unit-data)
-            :quality (:quality unit-data)
-            :tough  (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
-            :defense (:defense unit-data)
-            :size    (:size unit-data)
+           {:name     (:name unit-data)
+            :quality      (:quality unit-data)
+            :tough        (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
+            :defense      (:defense unit-data)
+            :size     (:size unit-data)
             :combined (:combined unit)
             :specialRules (map #(select-keys % [:name :rating :label]) (:specialRules unit-data))
-            :id      (:id unit-data)
-            :weapons (->> (if (not-empty filtered-weapons)
-                            (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
-                            (:equipment unit-data)))}))
-       (group-by :id)
-       (map (fn [[_ v]]
-              (if (:combined (first v))
-                (assoc (first v) :size (apply + (map :size v)))
-                v)))))
+            :id           (:id unit-data)
+            :weapons      (->> (if (not-empty filtered-weapons)
+                                 (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
+                                 (:equipment unit-data)))
+            }
+
+           ))
+       (group-by (comp :combined))
+       (mapcat (fn [[combined units]]
+              (if combined
+                (partition 2 units)
+                (map list units))))
+       ))
 
 
 (defn roll-attacker []
@@ -147,20 +151,23 @@
           {}
           fight))
 
-(defn fight [attacker defender]
+(defn fight [attacker-units defender-units]
   (->
    (apply
     merge-with
     into
-    (for [_      (range 0 (:size attacker))
+    (for [attacker attacker-units
+          _      (range 0 (:size attacker))
           weapon (parse-weapons (:weapons attacker))
           _ (range 0 (:attacks weapon))]
       {(:name weapon)
        (if (hit? attacker (roll-attacker))
-         (for [_ (range 0 (or (-> weapon :specialRules :blast) 1))]
-           (if (not (save? defender weapon (roll-defender)))
-             (or (-> weapon :specialRules :deadly) 1)
-             0))
+         (let [blast (-> weapon :specialRules :blast)]
+           (for [_ (range 0 (or (when blast
+                                  (min blast (:size (first defender-units)))) 1))]
+             (if (not (save? (first defender-units) weapon (roll-defender)))
+               (or (-> weapon :specialRules :deadly) 1)
+               0)))
          '(0))}))
    (sum-wounds)))
 
@@ -187,6 +194,15 @@
 
        ))
 
+(defn parse-file [file]
+  (let [json (json/parse-string file true)
+        army-id (-> json :armyId)]
+    {:units-file (-> json :list :units)
+     :api-data (-> (client/get (str api-url "/army-books/" army-id))
+                   :body
+                   (json/parse-string true))}))
+
+
 (def army-resource
  (yada/resource
   {:methods
@@ -201,11 +217,8 @@
            :produces {:media-type "application/json"}
            :response (fn [ctx]
                        (let [file (-> ctx :parameters :form :file)
-                             json (json/parse-string file true)
-                             units-file (-> json :list :units)
-                             army-id (-> json :armyId)
-                             api-data (-> (client/get (str api-url "/army-books/" army-id)) :body (json/parse-string true))]
-                         (reset! army {:units (flatten (merge-data units-file api-data))})
+                             {:keys [units-file api-data]}  (parse-file file)]
+                         (reset! army (merge-data units-file api-data))
                          @army))}}}))
 
 (def fight-resource
@@ -221,8 +234,8 @@
            :consumes #{"application/json"}
            :produces {:media-type "application/json"}
            :response (fn [ctx]
-                       (let [attacker-unit (-> ctx :body :attacker-unit)
-                             defender-unit (-> ctx :body :defender-unit)
+                       (let [attacker-unit (-> ctx :body :attacker-selected)
+                             defender-unit (-> ctx :body :defender-selected)
                              fight (run-experiments attacker-unit defender-unit NUM_EXPERIMENTS)]
                          (swap! army-fight assoc
                                 :attacker-unit attacker-unit

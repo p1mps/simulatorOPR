@@ -15,14 +15,16 @@
   cljsjs/react {:mvn/version "17.0.2-0"}
   cljsjs/react-dom {:mvn/version "17.0.2-0"}
   cljs-ajax/cljs-ajax {:mvn/version "0.8.4"}
-  hanami/hanami {:mvn/version "0.1.0"}
-  gyptis/gyptis {:mvn/version "0.2.2"}
-  enfocus/enfocus {:mvn/version "2.1.1"}
-  b1/b1 {:mvn/version "0.3.3"}
   com.stuartsierra/frequencies {:mvn/version "0.1.0"}}
 
  :aliases
- {:test {:extra-paths ["test"]}
+ {:test {:extra-paths ["test"]
+         :extra-deps
+         {com.cognitect/test-runner
+          {:git/url "https://github.com/cognitect-labs/test-runner.git"
+           :sha "5fb4fc46ad0bf2e0ce45eba5b9117a2e89166479"}
+          juxt.edge/test-utils {:local/root "../lib/edge.test-utils"}}
+         :main-opts ["-m" "cognitect.test-runner"]}
   :dev
   {:extra-paths ["dev"]
    :extra-deps
@@ -30,7 +32,8 @@
 
   :prod
   {:extra-deps
-   {juxt.edge/lib.app.prod {:local/root "../lib/edge.app.prod"}}}
+   {juxt.edge/lib.app.prod {:local/root "../lib/edge.app.prod"}}
+   }
 
   :build {:extra-deps
           {juxt.edge/kick {:local/root "../lib/edge.kick"}
