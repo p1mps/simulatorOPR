@@ -127,6 +127,7 @@
 
 
 (def army-edn (read-string (slurp "army.edn")))
+(def merge-data-edn (read-string (slurp "merge-data.edn")))
 
 (deftest parse-file
   (testing "parse file correctly"
@@ -135,9 +136,7 @@
 
 (deftest merge-data
   (testing "merges data correctly"
-    ))
-
-(sut/merge-data (:units-file army-edn) (:api-data army-edn))
+    (is (= merge-data-edn (sut/merge-data (:units-file army-edn) (:api-data army-edn))))))
 
 
 (run-tests)

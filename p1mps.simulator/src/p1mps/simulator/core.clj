@@ -1,5 +1,5 @@
 (ns p1mps.simulator.core
-  (:require
+ (:require
    [cheshire.core :as json]
    [clj-http.client :as client]
    [clojure.string :as string]
@@ -53,6 +53,25 @@
           {}
           (map :label rules)))
 
+
+(defn parse-special-rules-unit [rules]
+  (reduce (fn [m rule]
+            (when rule
+              (cond
+                (string/includes? rule "Regeneration")
+                (assoc m :regeneration true)
+                :else
+                m)))
+          {}
+          (map :label rules)))
+
+
+(defn parse-units [units]
+  (map #(update %
+                :specialRules
+                (partial parse-special-rules-unit))
+       units))
+
 (defn parse-weapons [weapons]
   (map #(update %
                 :specialRules
@@ -81,7 +100,7 @@
             :specialRules (map #(select-keys % [:name :rating :label]) (:specialRules unit-data))
             :id           (:id unit-data)
             :weapons      (->> (if (not-empty filtered-weapons)
-                                 (map #(select-keys % [:name :attacks :specialRules]) filtered-weapons)
+                                 (map #(select-keys % [:id :name :attacks :specialRules]) filtered-weapons)
                                  (:equipment unit-data)))
             }
 
@@ -150,6 +169,15 @@
                (assoc m k (list (apply + v))))
           {}
           fight))
+
+(defn regeneration-rolls [wounds defender]
+  (when (-> defender :specialRules :regeneration)
+    (let [rolls (for [_ (remove #{0} wounds)]
+                  (roll-defender))]
+      (-> (filter #(>= % 5) rolls)
+          (count)
+          (drop wounds)))))
+
 
 (defn fight [attacker-units defender-units]
   (->

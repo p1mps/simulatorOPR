@@ -245,7 +245,7 @@
   :coverImagePath "",
   :armyWideRule {},
   :factionRelation nil,
-  :modifiedAt "2022-05-09T23:23:30.724Z",
+  :modifiedAt "2022-05-10T22:11:40.232Z",
   :units
   [{:splitPageNumber 1,
     :upgrades ["A1" "C1"],
@@ -352,7 +352,7 @@
     [{:id "R6W9h",
       :name "Crew",
       :label "Crew",
-      :attacks 3,
+      :attacks 2,
       :specialRules []}
      {:id "3vrVg",
       :label "Mortars",
@@ -365,7 +365,7 @@
     :costModeAutomatic true,
     :id "8jb141s",
     :quality 5,
-    :cost 130}
+    :cost 120}
    {:splitPageNumber 1,
     :upgrades ["A1" "D1" "F1" "H1"],
     :name "Veteran Squad",
