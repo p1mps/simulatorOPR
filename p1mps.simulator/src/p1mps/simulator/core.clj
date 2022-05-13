@@ -58,12 +58,12 @@
   (reduce (fn [m rule]
             (when rule
               (cond
-                (string/includes? rule "Regeneration")
-                (assoc m :regeneration true)
+                (string/includes? (:name rule) "Regeneration")
+                (assoc m :regeneration 5)
                 :else
                 m)))
           {}
-          (map :label rules)))
+          rules))
 
 
 (defn parse-units [units]
@@ -97,7 +97,7 @@
             :defense      (:defense unit-data)
             :size     (:size unit-data)
             :combined (:combined unit)
-            :specialRules (map #(select-keys % [:name :rating :label]) (:specialRules unit-data))
+            :specialRules (parse-special-rules-unit (:specialRules unit-data))
             :id           (:id unit-data)
             :weapons      (->> (if (not-empty filtered-weapons)
                                  (map #(select-keys % [:id :name :attacks :specialRules]) filtered-weapons)
