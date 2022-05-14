@@ -69,15 +69,14 @@
 
 
 
-(defn change-quality [unit-id]
-  )
+
 
 (defn unit-component [units attacker]
   (let [unit-id (atom -1)]
     (for [unit units]
       (do (swap! unit-id inc)
           (list
-           [:table.table.mt-5
+           [:table.table
             [:thead
              [:tr
               (when attacker
@@ -163,37 +162,37 @@
 
 (defn app-components []
   [:div
-   [:p (str (:attacker-selected @app-state))]
-   [:br]
-   [:p (str (:defender-selected @app-state))]
+   ;; [:p (str (:attacker-selected @app-state))]
+   ;; [:br]
+   ;; [:p (str (:defender-selected @app-state))]
    [:form {:method "POST"}
-    [:div.file.field
-     [:label.file-label
-      [:input.file-input
-       {:id           "Attacker army"
-        :name         "army",
-        :type         "file"
+    [:div.file.field.box
+       [:label.file-label
+        [:input.file-input
+         {:id           "Attacker army"
+          :name         "army",
+          :type         "file"
 
-        :defaultValue ""
-        :on-change    (fn [e]
-                        (swap! app-state assoc "Attacker army" (-> e .-target .-value))
-                        (let [attacker-army (.getElementById js/document "Attacker army")
+          :defaultValue ""
+          :on-change    (fn [e]
+                          (swap! app-state assoc "Attacker army" (-> e .-target .-value))
+                          (let [attacker-army (.getElementById js/document "Attacker army")
 
-                              attacker-file (aget (.-files attacker-army) 0)
+                                attacker-file (aget (.-files attacker-army) 0)
 
-                              form-data-attacker (js/FormData.)
-                              _                  (.append form-data-attacker "file" attacker-file)]
-                          (POST "/api/army" {:body            form-data-attacker
-                                             :handler         attacker-upload-ok
-                                             :error-handler   attacker-upload-error
-                                             :response-format (json-response-format {:keywords? true})})
+                                form-data-attacker (js/FormData.)
+                                _                  (.append form-data-attacker "file" attacker-file)]
+                            (POST "/api/army" {:body            form-data-attacker
+                                               :handler         attacker-upload-ok
+                                               :error-handler   attacker-upload-error
+                                               :response-format (json-response-format {:keywords? true})})
 
-                          ))}]
-      [:span.file-cta
-       [:span.file-icon [:i.fas.fa-upload]]
-       [:span.file-label "Attacker army"]]
-      [:span.file-name (last (string/split (get @app-state "Attacker army") "\\"))]]]
-    [:div.file.field
+                            ))}]
+        [:span.file-cta
+         [:span.file-icon [:i.fas.fa-upload]]
+         [:span.file-label "Attacker army"]]
+        [:span.file-name (last (string/split (get @app-state "Attacker army") "\\"))]]]
+    [:div.file.field.box
      [:label.file-label
       [:input.file-input {:id           "Defender army"
                           :name         "army",
