@@ -53,6 +53,21 @@
           {}
           (map :label rules)))
 
+(defn parse-special-rules-equipment [rules]
+  (reduce (fn [v rule]
+            (when rule
+              (cond
+                (string/includes? rule "AP")
+                (assoc v :ap (Integer/parseInt
+                                  (-> (string/replace rule #"AP\(" "")
+                                      (string/replace #"\)" ""))))
+                :else
+                v))
+
+              )
+          {}
+          rules))
+
 
 (defn parse-special-rules-unit [rules]
   (reduce (fn [m rule]
@@ -99,9 +114,10 @@
             :combined (:combined unit)
             :specialRules (parse-special-rules-unit (:specialRules unit-data))
             :id           (:id unit-data)
-            :weapons      (->> (if (not-empty filtered-weapons)
-                                 (map #(select-keys % [:id :name :attacks :specialRules]) filtered-weapons)
-                                 (:equipment unit-data)))
+            :weapons      (if (not-empty filtered-weapons)
+                            (->> (map #(select-keys % [:id :name :attacks :specialRules]) filtered-weapons)
+                                 (map #(update % :specialRules (partial parse-special-rules))))
+                            (map #(update % :specialRules (partial parse-special-rules-equipment)) (:equipment unit-data)))
             }
 
            ))
@@ -115,12 +131,12 @@
 
 (defn roll-attacker []
   (+ 1 (rand-int 6))
-  ;;6
+
   )
 
 (defn roll-defender []
   (+ 1 (rand-int 6))
-  ;;1
+
 
   )
 
@@ -139,7 +155,9 @@
   ;; 1 is always failure
   (or (= roll 6)
       (>= roll (+ (:defense defender)
-                  (or (-> weapon :specialRules :ap) 0)))))
+                  (or
+                   (-> weapon :specialRules :ap)
+                   0)))))
 
 (defn wound? [attacker defender weapon]
   (let [roll-attacker (roll-attacker)
@@ -171,12 +189,11 @@
           fight))
 
 (defn regeneration-rolls [wounds defender]
-  (when (-> defender :specialRules :regeneration)
-    (let [rolls (for [_ (remove #{0} wounds)]
-                  (roll-defender))]
-      (-> (filter #(>= % 5) rolls)
-          (count)
-          (drop wounds)))))
+  (let [regeneration (-> defender :specialRules :regeneration)]
+    (if regeneration
+      (->> (map #(if (and (not= % 0) (>= (roll-defender) regeneration)) nil %) wounds)
+             (remove nil?))
+        wounds)))
 
 
 (defn fight [attacker-units defender-units]
@@ -186,17 +203,20 @@
     into
     (for [attacker attacker-units
           _      (range 0 (:size attacker))
-          weapon (parse-weapons (:weapons attacker))
+          weapon (:weapons attacker)
           _ (range 0 (:attacks weapon))]
       {(:name weapon)
        (if (hit? attacker (roll-attacker))
-         (let [blast (-> weapon :specialRules :blast)]
-           (for [_ (range 0 (or (when blast
-                                  (min blast (:size (first defender-units)))) 1))]
-             (if (not (save? (first defender-units) weapon (roll-defender)))
-               (or (-> weapon :specialRules :deadly) 1)
-               0)))
-         '(0))}))
+         (->
+          (let [blast (-> weapon :specialRules :blast)]
+            (for [_ (range 0 (or (when blast
+                                   (min blast (apply + (map :size defender-units)))) 1))]
+              (if (not (save? (first defender-units) weapon (roll-defender)))
+                (or (-> weapon :specialRules :deadly) 1)
+                0)))
+          (regeneration-rolls (first defender-units)))
+         '(0))})
+    )
    (sum-wounds)))
 
 
@@ -206,16 +226,21 @@
   (first (filter #(= (:name %) weapon) (:weapons unit))))
 
 
+(defn normalize [values stats]
+  (map
+   #(/ (- % (:min stats)) (- (:max stats) (:min stats)))
+   values))
 
 
 
 (defn run-experiments [attacker defender n]
   (->> (repeatedly n #(fight attacker defender))
-       (apply merge-with concat)
+       (apply merge-with (partial into))
        (reduce (fn [result [k v]]
                  (assoc result
                         k
                         {:values v
+
                          :stats  (freq/stats (frequencies v))}))
                         {})
 

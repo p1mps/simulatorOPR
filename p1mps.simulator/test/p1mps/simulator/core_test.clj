@@ -1,9 +1,11 @@
-(ns p1mps.simulator.test.core-test
+(ns p1mps.simulator.core-test
   (:require  [clojure.test :refer :all]
              [p1mps.simulator.core :as sut]))
 
 (def weapon-ap
-  {:specialRules {:ap 1}})
+  {:name "weapon ap"
+   :attacks 1
+   :specialRules [{:label "AP(1)"}]})
 
 (def weapon-blast
   {:specialRules {:blast 3}})
@@ -41,6 +43,10 @@
               :attacks      1
               :specialRules []}]})
 
+(def guardsman-ap
+  (assoc guardsman
+         :weapons [weapon-ap]))
+
 (def spacemarine
   {:size 3
    :defense 3})
@@ -53,21 +59,6 @@
                                      {:label "Blast(1)"}
                                      {:label "Deadly(1)"}
                                      {:label "Impact(1)"}])))))
-
-(deftest wound?
-  (testing "attacker 6 defender 1"
-    (with-redefs [sut/roll-attacker (fn [] 6)
-                  sut/roll-defender (fn [] 1)]
-      (is (= true (sut/wound? guardsman spacemarine {})))))
-  (testing "hit and no defense"
-    (with-redefs [sut/roll-attacker (fn [] 5)
-                  sut/roll-defender (fn [] 2)]
-      (is (= true (sut/wound? guardsman spacemarine {})))))
-  (testing "hit and no defense with ap"
-    (with-redefs [sut/roll-attacker (fn [] 5)
-                  sut/roll-defender (fn [] 3)]
-      (is (= true (sut/wound? guardsman spacemarine weapon-ap))))))
-
 
 (deftest fight
   (testing "fighting without size with all hits"
@@ -83,6 +74,13 @@
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
       (is (= {"cannon" [3]} (sut/fight [tank] [spacemarine])))))
+  (testing "fighting with ap weapon"
+    (with-redefs [sut/roll-attacker (fn [] 6)
+                  sut/roll-defender (fn [] 3)]
+      (is (= {"weapon ap" [1]} (sut/fight [guardsman-ap] [spacemarine]))))
+    (with-redefs [sut/roll-attacker (fn [] 6)
+                  sut/roll-defender (fn [] 4)]
+      (is (= {"weapon ap" [0]} (sut/fight [guardsman-ap] [spacemarine])))))
   (testing "fighting with mega blast weapon"
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]

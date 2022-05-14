@@ -245,7 +245,7 @@
   :coverImagePath "",
   :armyWideRule {},
   :factionRelation nil,
-  :modifiedAt "2022-05-10T22:11:40.232Z",
+  :modifiedAt "2022-05-12T12:44:35.237Z",
   :units
   [{:splitPageNumber 1,
     :upgrades ["A1" "C1"],
@@ -1548,18 +1548,13 @@
     [{:uid "frHsf",
       :label "Add one model with",
       :options
-      [{:uid "Cg7_w",
+      [{:cost 55,
         :type "ArmyBookUpgradeOption",
-        :proposedVersion "2.50",
-        :proposedCost 60,
-        :label
-        "Heavy Weapons Team (Crew (A3), Mortar (30\", A1, Blast(3), Indirect), Tough(3))",
-        :parentSectionUid "frHsf",
         :gains
         [{:name "Heavy Weapons Team",
           :type "ArmyBookItem",
           :label
-          "Heavy Weapons Team (Crew (A3), Mortar (30\", A1, Blast(3), Indirect), Tough(3))",
+          "Heavy Weapons Team (Crew (A2), Mortar (30\", A1, Blast(3), Indirect), Tough(3))",
           :content
           [{:key "tough",
             :name "Tough",
@@ -1567,13 +1562,6 @@
             :label "Tough(3)",
             :modify false,
             :rating "3"}
-           {:name "Crew",
-            :type "ArmyBookWeapon",
-            :label "Crew (A3)",
-            :range 0,
-            :attacks 3,
-            :condition "",
-            :specialRules []}
            {:name "Mortar",
             :type "ArmyBookWeapon",
             :label "Mortar (30\", A1, Blast(3), Indirect)",
@@ -1592,22 +1580,31 @@
               :type "ArmyBookRule",
               :label "Indirect",
               :modify false,
-              :rating ""}]}]}],
-        :cost 60,
+              :rating ""}]}
+           {:name "Crew",
+            :type "ArmyBookWeapon",
+            :label "Crew (A2)",
+            :range 0,
+            :attacks 2,
+            :condition "",
+            :specialRules []}]}],
+        :label
+        "Heavy Weapons Team (Crew (A2), Mortar (30\", A1, Blast(3), Indirect), Tough(3))",
+        :proposedCost 55,
+        :proposedVersion "2.50",
         :proposedCostHint
         [{:isValid true,
           :unitName "Infantry Squad",
-          :newCostPrecise "42.750",
-          :newCostRounded 45}
+          :newCostPrecise "40.750",
+          :newCostRounded 40}
          {:isValid true,
           :unitName "Weapon Teams",
-          :newCostPrecise "42.750",
-          :newCostRounded 45}
+          :newCostPrecise "40.750",
+          :newCostRounded 40}
          {:isValid true,
           :unitName "Veteran Squad",
-          :newCostPrecise "58.125",
-          :newCostRounded 60}],
-        :parentPackageUid "F1"}],
+          :newCostPrecise "55.125",
+          :newCostRounded 55}]}],
       :parentPackageUid "F1"}
      {:uid "j-1QADy",
       :type "replace",
@@ -1639,20 +1636,20 @@
         [{:isValid true,
           :unitName "Infantry Squad",
           :newCostPrecise "2.250",
-          :newCostRounded 0}
+          :newCostRounded 5}
          {:isValid true,
           :unitName "Weapon Teams",
           :newCostPrecise "2.250",
-          :newCostRounded 0}
+          :newCostRounded 5}
          {:isValid true,
           :unitName "Veteran Squad",
           :newCostPrecise "3.375",
-          :newCostRounded 0}],
+          :newCostRounded 5}],
         :parentPackageUid "F1"}
        {:uid "wbieNDW",
         :type "ArmyBookUpgradeOption",
         :proposedVersion "2.50",
-        :proposedCost 10,
+        :proposedCost 15,
         :label
         "Missile Launcher (30\", A1, AP(2), Deadly(3), Lock-On)",
         :parentSectionUid "j-1QADy",
@@ -1683,25 +1680,25 @@
             :label "Lock-On",
             :modify false,
             :rating ""}]}],
-        :cost 10,
+        :cost 15,
         :proposedCostHint
         [{:isValid true,
           :unitName "Infantry Squad",
           :newCostPrecise "9.375",
-          :newCostRounded 5}
+          :newCostRounded 10}
          {:isValid true,
           :unitName "Weapon Teams",
           :newCostPrecise "9.375",
-          :newCostRounded 5}
+          :newCostRounded 10}
          {:isValid true,
           :unitName "Veteran Squad",
           :newCostPrecise "14.063",
-          :newCostRounded 10}],
+          :newCostRounded 15}],
         :parentPackageUid "F1"}
        {:uid "73VJokB",
         :type "ArmyBookUpgradeOption",
         :proposedVersion "2.50",
-        :proposedCost 15,
+        :proposedCost 20,
         :label "Laser Cannon (36”, A1, AP(3), Deadly(3))",
         :parentSectionUid "j-1QADy",
         :gains
@@ -1721,20 +1718,20 @@
             :type "ArmyBookRule",
             :label "Deadly(3)",
             :rating "3"}]}],
-        :cost 15,
+        :cost 20,
         :proposedCostHint
         [{:isValid true,
           :unitName "Infantry Squad",
           :newCostPrecise "12.750",
-          :newCostRounded 10}
+          :newCostRounded 15}
          {:isValid true,
           :unitName "Weapon Teams",
           :newCostPrecise "12.750",
-          :newCostRounded 10}
+          :newCostRounded 15}
          {:isValid true,
           :unitName "Veteran Squad",
           :newCostPrecise "19.125",
-          :newCostRounded 15}],
+          :newCostRounded 20}],
         :parentPackageUid "F1"}
        {:uid "ArjAYJv",
         :type "ArmyBookUpgradeOption",
@@ -1759,11 +1756,11 @@
         [{:isValid true,
           :unitName "Infantry Squad",
           :newCostPrecise "13.650",
-          :newCostRounded 10}
+          :newCostRounded 15}
          {:isValid true,
           :unitName "Weapon Teams",
           :newCostPrecise "13.650",
-          :newCostRounded 10}
+          :newCostRounded 15}
          {:isValid true,
           :unitName "Veteran Squad",
           :newCostPrecise "20.475",
