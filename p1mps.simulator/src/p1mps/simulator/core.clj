@@ -46,6 +46,10 @@
                 (assoc m :impact (Integer/parseInt
                                   (-> (string/replace rule #"Impact\(" "")
                                       (string/replace #"\)" ""))))
+                (string/includes? rule "Poison")
+                (assoc m :poison true)
+                (string/includes? rule "Rending")
+                (assoc m :rending true)
                 :else
                 m))
 
@@ -54,15 +58,31 @@
           (map :label rules)))
 
 (defn parse-special-rules-equipment [rules]
-  (reduce (fn [v rule]
+  (reduce (fn [m rule]
             (when rule
               (cond
                 (string/includes? rule "AP")
-                (assoc v :ap (Integer/parseInt
-                                  (-> (string/replace rule #"AP\(" "")
+                (assoc m :ap (Integer/parseInt
+                              (-> (string/replace rule #"AP\(" "")
+                                  (string/replace #"\)" ""))))
+                (string/includes? rule "Blast")
+                (assoc m :blast (Integer/parseInt
+                                 (-> (string/replace rule #"Blast\(" "")
+                                     (string/replace #"\)" ""))))
+                (string/includes? rule "Deadly")
+                (assoc m :deadly (Integer/parseInt
+                                  (-> (string/replace rule #"Deadly\(" "")
                                       (string/replace #"\)" ""))))
+                (string/includes? rule "Impact")
+                (assoc m :impact (Integer/parseInt
+                                  (-> (string/replace rule #"Impact\(" "")
+                                      (string/replace #"\)" ""))))
+                (string/includes? rule "Poison")
+                (assoc m :poison true)
+                (string/includes? rule "Rending")
+                (assoc m :rending true)
                 :else
-                v))
+                m))
 
               )
           {}
@@ -188,35 +208,50 @@
           {}
           fight))
 
-(defn regeneration-rolls [wounds defender]
+(defn regeneration-rolls [defender wounds]
   (let [regeneration (-> defender :specialRules :regeneration)]
     (if regeneration
       (->> (map #(if (and (not= % 0) (>= (roll-defender) regeneration)) nil %) wounds)
-             (remove nil?))
+           (remove nil?))
         wounds)))
 
+(defn max-hits-blast [weapon {:keys [size]}]
+  (min (or (-> :specialRules weapon :blast) 1) size))
 
+(defn filter-hits [attacker-unit hits]
+  (filter #(>= % (:quality attacker-unit)) hits))
+
+
+(defn roll-hits [attacker-unit weapon defender-unit]
+  (->> (flatten
+        (for [_        (range 0 (:size attacker-unit))
+              _        (range 0 (:attacks weapon))]
+          (let [hits (repeat (max-hits-blast weapon defender-unit) (roll-attacker))]
+            (if (-> weapon :specialRules :poison)
+              (mapcat #(take 3 (repeat %)) hits)
+              hits))))
+       (filter-hits attacker-unit)))
+
+
+(defn roll-saves [defender-unit weapon hits]
+  (->> (for [_ hits]
+         (when (< (roll-defender)
+                  (+ (:defense defender-unit) (or (-> weapon :specialRules :ap) 0)))
+           (or (-> weapon :specialRules :deadly) 1)))
+       (remove nil?)
+       (regeneration-rolls defender-unit)))
+
+
+;; special rules: blast deadly poison rending
 (defn fight [attacker-units defender-units]
   (->
    (apply
     merge-with
     into
     (for [attacker attacker-units
-          _      (range 0 (:size attacker))
-          weapon (:weapons attacker)
-          _ (range 0 (:attacks weapon))]
-      {(:name weapon)
-       (if (hit? attacker (roll-attacker))
-         (->
-          (let [blast (-> weapon :specialRules :blast)]
-            (for [_ (range 0 (or (when blast
-                                   (min blast (apply + (map :size defender-units)))) 1))]
-              (if (not (save? (first defender-units) weapon (roll-defender)))
-                (or (-> weapon :specialRules :deadly) 1)
-                0)))
-          (regeneration-rolls (first defender-units)))
-         '(0))})
-    )
+          weapon (:weapons attacker)]
+      {(:name weapon) (->> (roll-hits attacker weapon (first defender-units))
+                           (roll-saves (first defender-units) weapon))}))
    (sum-wounds)))
 
 

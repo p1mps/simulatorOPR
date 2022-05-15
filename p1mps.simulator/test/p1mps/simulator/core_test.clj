@@ -2,13 +2,29 @@
   (:require  [clojure.test :refer :all]
              [p1mps.simulator.core :as sut]))
 
+(def weapon
+  {:name "weapon"
+   :attacks 1
+   :specialRules []})
+
+(def weapon-deadly
+  {:name "weapon"
+   :attacks 1
+   :specialRules {:deadly 3}})
+
 (def weapon-ap
   {:name "weapon ap"
    :attacks 1
-   :specialRules [{:label "AP(1)"}]})
+   :specialRules {:ap 1}})
 
 (def weapon-blast
-  {:specialRules {:blast 3}})
+  {:attacks 1
+   :specialRules {:blast 3}})
+
+(def weapon-3-attacks
+  {:name "weapon 3 attacks"
+   :attacks 3
+   :specialRules []})
 
 
 (def tank
@@ -16,14 +32,14 @@
    :size    1
    :weapons [{:name         "cannon"
               :attacks      1
-              :specialRules [{:label "Blast(3)"}]}]})
+              :specialRules {:blast 3}}]})
 
 (def tank-mega-blast
   {:quality 4
    :size    1
    :weapons [{:name         "cannon"
               :attacks      1
-              :specialRules [{:label "Blast(6)"}]}]})
+              :specialRules {:blast 6}}]})
 
 (def guardsman
   {:quality 5
@@ -47,6 +63,10 @@
   (assoc guardsman
          :weapons [weapon-ap]))
 
+(def guardsman-3-attacks
+  (assoc guardsman
+         :weapons [weapon-3-attacks]))
+
 (def spacemarine
   {:size 3
    :defense 3})
@@ -64,7 +84,7 @@
   (testing "fighting without size with all hits"
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
-      (is (= {"gun" '(1)} (sut/fight [guardsman] [spacemarine])))))
+      (sut/fight [guardsman] [spacemarine])))
   (testing "fighting with size with all hits"
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
@@ -137,4 +157,28 @@
     (is (= merge-data-edn (sut/merge-data (:units-file army-edn) (:api-data army-edn))))))
 
 
-(run-tests)
+
+
+(deftest roll-hits
+  (testing "rolling hits 3 attacks"
+    (with-redefs [sut/roll-attacker (fn [] 6)]
+      (is (= '(6 6 6) (sut/roll-hits guardsman weapon-3-attacks spacemarine))))
+    )
+  (testing "rolling hits missing"
+    (with-redefs [sut/roll-attacker (fn [] 3)]
+      (is (= '() (sut/roll-hits guardsman weapon-3-attacks spacemarine))))
+    )
+  (testing "rolling hits with blast"
+    (with-redefs [sut/roll-attacker (fn [] 6)]
+      (is (= '(6 6 6) (sut/roll-hits guardsman weapon-blast spacemarine))))
+    ))
+
+
+(deftest roll-saves
+  (testing "rolling saves"
+    (with-redefs [sut/roll-defender (fn [] 2)]
+      (sut/roll-saves spacemarine weapon [1])))
+  (testing "rolling saves deadly"
+    (with-redefs [sut/roll-defender (fn [] 2)]
+      (is (= '(3) (sut/roll-saves spacemarine weapon-deadly [1]))))
+    ))
