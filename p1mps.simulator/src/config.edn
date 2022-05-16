@@ -10,7 +10,7 @@
                                  :output-dir "public/frontend.out"
                                  :asset-path "/frontend.out"
                                  :optimizations #profile {:dev :none
-                                                          :prod :advanced}}]
+                                                          :prod :none}}]
                        :figwheel-config
                        {:ring-server-options
                         {:port 8500}}}}
@@ -22,7 +22,7 @@
   [:edge.yada.ig/resources :p1mps.simulator/assets] {:path "public"}
   :edge.yada.ig/listener {:handler #ig/ref :edge.bidi.ig/vhost
                           :port 9600}
-  :edge.bidi.ig/vhost [["http://simulator-opr.ddns.net/"
+  :edge.bidi.ig/vhost [["http://localhost:9600"
                         [""
                          [["/api"
                            [["/army" #ig/ref :p1mps.simulator.core/army]
