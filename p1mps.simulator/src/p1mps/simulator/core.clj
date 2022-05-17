@@ -12,7 +12,7 @@
   [x]
   (yada/as-resource x))
 
-(def NUM_EXPERIMENTS 1000)
+(def NUM_EXPERIMENTS 100)
 
 (def army
   (atom

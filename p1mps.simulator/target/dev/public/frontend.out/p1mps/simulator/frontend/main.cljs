@@ -143,14 +143,15 @@
 (defn graph-title [stats]
   (str
    (name (:name stats))
-   " mean value " (-> stats :stats :mean)))
+   " median value " (-> stats :stats :median)))
 
 (defn plot-graph []
   (let [data (vec
               (for [[weapon wounds] (-> @app-state :fight)]
                 (let [freqs (into (sorted-map) (frequencies (:values wounds)))]
-                  {:x     (keys freqs)
-                   :y     (vals freqs)
+                  {:y     (vals freqs)
+                   :x     (keys freqs)
+
                    :stats (:stats wounds)
                    :name  weapon
                                         ;:showlegend true
