@@ -40,9 +40,11 @@
      (let [index (.indexOf weapons weapon)]
        [:div [:div.column
               [:table.table
-               [:th "Weapon"]
-               [:th "Attacks"]
-               [:th "AP"]
+               [:thead
+                [:tr
+                 [:th "Weapon"]
+                 [:th "Attacks"]
+                 [:th "AP"]]]
                [:tbody
                 [:tr
                  [:th (:name weapon)]
