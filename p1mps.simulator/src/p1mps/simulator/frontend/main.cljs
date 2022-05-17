@@ -38,101 +38,105 @@
   [:div.columns
    (for [weapon weapons]
      (let [index (.indexOf weapons weapon)]
-       (list
-        [:div.column
-         [:table.table
-          [:th "Weapon"]
-          [:th "Attacks"]
-          [:th "AP"]
-          [:tbody
-           [:tr
-            [:th (:name weapon)]
-            [:th [:input#attacks {:id           (str "attacks-" index)
-                                  :type         "text" :class "input"
-                                  :defaultValue (:attacks weapon)
-                                  :on-change    (fn [e]
-                                                  (let [attacks (js/parseInt (-> e .-target .-value))]
-                                                    (swap! app-state
-                                                           assoc-in
-                                                           [:attacker-selected unit-id :weapons index :attacks] attacks)
-                                                    (println (:attacker-selected @app-state))))}]]
-            [:th [:input#ap {:type "text" :defaultValue (or (:ap (:specialRules weapon)) "-") :class "input"
-                             :on-change
-                             (fn [e]
-                               (let [ap (js/parseInt (-> e .-target .-value))]
-                                 (swap! app-state
-                                        assoc-in
-                                        [:attacker-selected unit-id :weapons index :specialRules :ap] ap)
-                                 (println (:attacker-selected @app-state))))
-                             }]]]]]]
-        )))])
+       [:div [:div.column
+              [:table.table
+               [:th "Weapon"]
+               [:th "Attacks"]
+               [:th "AP"]
+               [:tbody
+                [:tr
+                 [:th (:name weapon)]
+                 [:th [:input#attacks {:id           (str "attacks-" index)
+                                       :type         "text" :class "input"
+                                       :value (:attacks weapon)
+                                       :on-change    (fn [e]
+                                                       (let [attacks (js/parseInt (-> e .-target .-value))]
+                                                         (swap! app-state
+                                                                assoc-in
+                                                                [:attacker-selected unit-id :weapons index :attacks] attacks)
+                                                         (println (:attacker-selected @app-state))))}]]
+                 [:th [:input#ap {:type "text" :value (or (:ap (:specialRules weapon)) "-") :class "input"
+                                  :on-change
+                                  (fn [e]
+                                    (let [ap (js/parseInt (-> e .-target .-value))]
+                                      (swap! app-state
+                                             assoc-in
+                                             [:attacker-selected unit-id :weapons index :specialRules :ap] ap)
+                                      (println (:attacker-selected @app-state))))
+                                  }]]]]]]]
+       ))])
 
 
 
 
-
-(defn unit-component [units attacker]
+(defn unit-component-attacker [units]
   (let [unit-id (atom -1)]
     (for [unit units]
       (do (swap! unit-id inc)
-          (list
+          [:div [:table.table
+                 [:thead
+                  [:tr
+                   [:th "Quality"]
+                   [:th "Size"]]]
+                 [:tbody
+                  [:tr
+                   [:th
+                    [:input {:id        @unit-id
+                             :type      "text" :value (:quality unit) :class "input"
+                             :on-change (fn [e]
+                                          (let [quality (js/parseInt (-> e .-target .-value))
+                                                unit-id (js/parseInt (-> e .-target .-id))]
+                                            (swap! app-state
+                                                   assoc-in
+                                                   [:attacker-selected unit-id :quality] quality))
+
+                                          (println unit-id)
+                                          (println (get (:attacker-selected @app-state) unit-id)))}]]
+
+                   [:th (:size unit)]]]]
+           [:div (weapons-component @unit-id (:weapons unit))
+            (when (< @unit-id (- (count units) 1))
+              (list
+               [:hr.border-black]
+               ))]]
+          ))))
+
+(defn unit-component-defender [units]
+  (let [unit-id (atom -1)]
+    (for [unit units]
+      (do (swap! unit-id inc)
+          [:div
            [:table.table
-            [:thead
-             [:tr
-              (when attacker
-                [:th "Quality"])
-              (when-not attacker
-                (list [:th "Defense"]
-                      [:th "Regeneration"]
-                      [:th "Tough"]))
-              [:th "Size"]]]
-            [:tbody
-             [:tr
-              (when attacker
-                (list
-                 [:th
-                  [:input {:id        @unit-id
-                           :type      "text" :defaultValue (:quality unit) :class "input"
-                           :on-change (fn [e]
-                                        (let [quality (js/parseInt (-> e .-target .-value))
-                                              unit-id (js/parseInt (-> e .-target .-id))]
-                                          (swap! app-state
-                                                 assoc-in
-                                                 [:attacker-selected unit-id :quality] quality))
-
-                                        (println unit-id)
-                                        (println (get (:attacker-selected @app-state) unit-id)))}]]))
-              (when-not attacker
-                (list [:th [:input {:id        @unit-id
-                                    :type      "text" :defaultValue (:defense unit) :class "input"
-                                            :on-change (fn [e]
-                                                         (let [defense (js/parseInt (-> e .-target .-value))
-                                                               unit-id (js/parseInt (-> e .-target .-id))]
-                                                           (swap! app-state
-                                                                  assoc-in
-                                                                  [:defender-selected unit-id :defense] defense))
-                                                         (println (:defender-selected @app-state)))}]]
-                      [:th [:input#rules {:id        @unit-id
-                                          :type "text" :defaultValue (or (-> unit :specialRules :regeneration) "-") :class "input"
-                                          :on-change
-                                          (fn [e]
-                                            (let [regeneration (js/parseInt (-> e .-target .-value))
-                                                  unit-id (js/parseInt (-> e .-target .-id))]
-                                              (swap! app-state
-                                                     assoc-in
-                                                     [:defender-selected unit-id :specialRules :regeneration] regeneration))
-                                            (println (:defender-selected @app-state)))}]]
-                      [:th (or (:tough unit) "-")]))
-              [:th (:size unit)]]]]
-           (when attacker
-             (list (weapons-component @unit-id (:weapons unit))
-                   (when (< @unit-id (- (count units) 1))
-                     (list
-
-                      [:hr.border-black]
-                      ))))
-           )))))
-
+                 [:thead
+                  [:tr
+                   [:th "Defense"]
+                   [:th "Regeneration"]
+                   [:th "Tough"]
+                   [:th "Size"]]]
+                 [:tbody
+                  [:tr
+                   [:th [:input {:id        @unit-id
+                                 :type      "text" :value (:defense unit) :class "input"
+                                 :on-change (fn [e]
+                                              (let [defense (js/parseInt (-> e .-target .-value))
+                                                    unit-id (js/parseInt (-> e .-target .-id))]
+                                                (swap! app-state
+                                                       assoc-in
+                                                       [:defender-selected unit-id :defense] defense))
+                                              (println (:defender-selected @app-state)))}]]
+                   [:th [:input#rules {:id   @unit-id
+                                       :type "text" :value (or (-> unit :specialRules :regeneration) "-") :class "input"
+                                       :on-change
+                                       (fn [e]
+                                         (let [regeneration (js/parseInt (-> e .-target .-value))
+                                               unit-id      (js/parseInt (-> e .-target .-id))]
+                                           (swap! app-state
+                                                  assoc-in
+                                                  [:defender-selected unit-id :specialRules :regeneration] regeneration))
+                                         (println (:defender-selected @app-state)))}]]
+                   [:th (or (:tough unit) "-")]
+                   [:th (:size unit)]]]]]
+          ))))
 
 (defn graph-title [stats]
   (str
@@ -216,47 +220,46 @@
       [:span.file-name (last (string/split (get @app-state "Defender army") "\\"))]]]]
 
    (when (:attacker-selected @app-state)
-     (list
-      [:div.select.mt-5 {:key "1"}
-       [:select
-        {:defaultValue ""
-         :on-change    (fn [e]
-                         (let [id   (-> e .-target .-value)
-                               unit (first
-                                     (->> (-> @app-state :attacker)
-                                          (filter (fn [v]
-                                                    (some (comp #{id} :id) v)))))]
-                           (println id " " unit)
-                           (swap! app-state assoc :attacker-selected unit)))}
-        (for [unit (:attacker @app-state)]
-          [:option {:key (:id (first unit))} (:name (first unit))])]]
+     [:div [:div.select.mt-5 {:key "1"}
+            [:select
+             {:id           "attackers"
+              :defaultValue ""
+              :on-change    (fn [_]
+                              (let [e    (js/document.getElementById "attackers")
+                                    id   (.-id (aget (.-options e) (.-selectedIndex e)))
+                                    unit (first
+                                          (->> (-> @app-state :attacker)
+                                               (filter (fn [v]
+                                                         (some (comp #{id} :id) v)))))]
+                                (println id " " unit)
+                                (swap! app-state assoc :attacker-selected unit)))}
+             (for [unit (:attacker @app-state)]
+               [:option {:id (str (:id (first unit)))} (:name (first unit))])]]
       [:div.mt-5.box.border-black {:key "2"}
-       (unit-component (:attacker-selected @app-state) true)]))
-
+       (unit-component-attacker (:attacker-selected @app-state))]])
 
    (when (:defender-selected @app-state)
-     (list
-      [:div.select.mt-5
-       [:select
-        {:defaultValue ""
-         :on-change    (fn [e]
-                         (let [id   (-> e .-target .-value)
-                               unit (first
-                                     (->> (-> @app-state :defender)
-                                          (filter (fn [v]
-                                                    (some (comp #{id} :id) v)))))]
-                        (println id " " unit)
-                        (swap! app-state assoc :defender-selected unit)))}
-        (for [unit (:defender @app-state)]
-          [:option {:key (:id (first unit))} (:name (first unit))])]]
+     [:div [:div.select.mt-5 {:key "1"}
+            [:select
+             {:id           "defenders"
+              :defaultValue ""
+              :on-change    (fn [_]
+                              (let [e    (js/document.getElementById "defenders")
+                                    id   (.-id (aget (.-options e) (.-selectedIndex e)))
+                                    unit (first
+                                          (->> (-> @app-state :defender)
+                                               (filter (fn [v]
+                                                         (some (comp #{id} :id) v)))))]
+                                (println id " " unit)
+                                (swap! app-state assoc :defender-selected unit)))}
+             (for [unit (:defender @app-state)]
+               [:option {:id (str (:id (first unit)))} (:name (first unit))])]]
       [:div.mt-5.box.border-black {:key "2"}
-       (unit-component (:defender-selected @app-state) false)]))
-
-
+       (unit-component-defender (:defender-selected @app-state))]])
 
    (when (and (:attacker-selected @app-state) (:defender-selected @app-state))
-     (list [:div.field
-            [:button.button
+     [:div [:div.field
+            [:button.button.mt-5
              {:on-click (fn [ev]
                           (.preventDefault ev)
                           (POST "/api/fight" {:params          (select-keys @app-state [:attacker-selected :defender-selected])
@@ -266,11 +269,11 @@
                                               :response-format (json-response-format {:keywords? true})})
                           )}
              "Fight!"]]
-           (when (-> @app-state :fight)
-             (plot-graph)
+      (when (-> @app-state :fight)
+        (plot-graph)
 
-             )
-           ))])
+        )]
+     )])
 
 ;; This is called once
 (defn init []

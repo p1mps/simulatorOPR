@@ -6,10 +6,6 @@
                         :target "public/simulator.css"}]}
   :kick/figwheel-main {:builds [{:id "app"
                                  :main p1mps.simulator.frontend.main
-                                 :language-in :ecmascript6
-                                 :externs ["plotly-2.12.1.min.js"]
-                                 :foreign-libs [{:file "plotly-2.12.1.min.js"
-                                                  :provides ["plotly"]}]
                                  :output-to "public/frontend.js"
                                  :output-dir "public/frontend.out"
                                  :asset-path "/frontend.out"
