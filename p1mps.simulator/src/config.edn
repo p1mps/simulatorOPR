@@ -9,6 +9,10 @@
                                  :output-to "public/frontend.js"
                                  :output-dir "public/frontend.out"
                                  :asset-path "/frontend.out"
+                                 :language-in :ecmascript6
+                                 :externs ["plotly-2.12.1.min.js"]
+                                 :foreign-libs [{:file "plotly-2.12.1.min.js"
+                                                 :provides ["plotly"]}]
                                  :optimizations #profile {:dev :none
                                                           :prod :advanced}}]
                        :figwheel-config
