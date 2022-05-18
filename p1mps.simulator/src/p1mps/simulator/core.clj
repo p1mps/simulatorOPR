@@ -215,18 +215,18 @@
            (remove nil?))
         wounds)))
 
-(defn max-hits-blast [weapon {:keys [size]}]
-  (min (or (-> :specialRules weapon :blast) 1) size))
+(defn max-hits-blast [weapon defender-units]
+  (min (or (-> :specialRules weapon :blast) 1) (apply + (map :size defender-units))))
 
 (defn filter-hits [attacker-unit hits]
   (filter #(>= % (:quality attacker-unit)) hits))
 
 
-(defn roll-hits [attacker-unit weapon defender-unit]
+(defn roll-hits [attacker-unit weapon defender-units]
   (->> (flatten
         (for [_        (range 0 (:size attacker-unit))
               _        (range 0 (:attacks weapon))]
-          (let [hits (repeat (max-hits-blast weapon defender-unit) (roll-attacker))]
+          (let [hits (repeat (max-hits-blast weapon defender-units) (roll-attacker))]
             (if (-> weapon :specialRules :poison)
               (mapcat #(take 3 (repeat %)) hits)
               hits))))
@@ -250,7 +250,7 @@
     into
     (for [attacker attacker-units
           weapon (:weapons attacker)]
-      {(:name weapon) (->> (roll-hits attacker weapon (first defender-units))
+      {(:name weapon) (->> (roll-hits attacker weapon defender-units)
                            (roll-saves (first defender-units) weapon))}))
    (sum-wounds)))
 
