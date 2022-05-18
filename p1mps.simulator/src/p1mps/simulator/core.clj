@@ -226,7 +226,7 @@
   (->> (flatten
         (for [_        (range 0 (:size attacker-unit))
               _        (range 0 (:attacks weapon))]
-          (let [hits (repeat (max-hits-blast weapon defender-units) (roll-attacker))]
+          (let [hits (repeatedly (max-hits-blast weapon defender-units) roll-attacker)]
             (if (-> weapon :specialRules :poison)
               (mapcat #(take 3 (repeat %)) hits)
               hits))))
