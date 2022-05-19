@@ -47,7 +47,7 @@
                  [:th "AP"]]]
                [:tbody
                 [:tr
-                 [:th (:name weapon)]
+                 [:th (str (:size weapon) "x " (:name weapon))]
                  [:th [:input#attacks {:id           (str "attacks-" index)
                                        :type         "text" :class "input"
                                        :value (:attacks weapon)
