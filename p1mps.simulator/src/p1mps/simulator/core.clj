@@ -107,14 +107,20 @@
                 (partial parse-special-rules-unit))
        units))
 
-(defn parse-weapons [weapons]
-  (map #(update %
-                :specialRules
-                (partial parse-special-rules))
-       weapons))
+(defn parse-weapons [unit equipment all-gains replace-what]
+  (let [;; if name is in replace-what, remove it from equipment
+        equipment-removed (remove #(some #{(:name %)} replace-what) equipment)]
+    (concat
+     (when (not-empty equipment-removed)
+       (map #(assoc % :size
+                    (if (some #{(:name %)} replace-what)
+                      (- (:size unit) (count all-gains))
+                      (:size unit))) (set equipment)))
+     (map #(assoc % :size (count all-gains)) (set all-gains)))))
 
 (defn merge-data [units-file api-data]
   (->> (for [unit units-file]
+
          (let [unit-upgrades    (map #(select-keys % [:optionId :upgradeId]) (:selectedUpgrades unit))
                unit-data        (first (filter #(= (:id unit) (:id %)) (:units api-data)))
                upgrades         (for [upgrade unit-upgrades]
@@ -125,7 +131,7 @@
                                      :gains       (:gains selected-option)}))
                all-replace-what (map :replaceWhat upgrades)
                all-gains        (mapcat :gains upgrades)
-               filtered-weapons (remove #(some #{(:name %)} all-replace-what) all-gains)]
+               weapons (parse-weapons unit-data (:equipment unit-data) all-gains all-replace-what)]
            {:name     (:name unit-data)
             :quality      (:quality unit-data)
             :tough        (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
@@ -134,10 +140,9 @@
             :combined (:combined unit)
             :specialRules (parse-special-rules-unit (:specialRules unit-data))
             :id           (:id unit-data)
-            :weapons      (if (not-empty filtered-weapons)
-                            (->> (map #(select-keys % [:id :name :attacks :specialRules]) filtered-weapons)
-                                 (map #(update % :specialRules (partial parse-special-rules))))
-                            (map #(update % :specialRules (partial parse-special-rules-equipment)) (:equipment unit-data)))
+            :weapons      (->> weapons
+                               (map #(update % :specialRules (partial parse-special-rules))))
+
             }
 
            ))
@@ -224,7 +229,7 @@
 
 (defn roll-hits [attacker-unit weapon defender-units]
   (->> (flatten
-        (for [_        (range 0 (:size attacker-unit))
+        (for [_        (range 0 (:size weapon))
               _        (range 0 (:attacks weapon))]
           (let [hits (repeatedly (max-hits-blast weapon defender-units) roll-attacker)]
             (if (-> weapon :specialRules :poison)
@@ -234,9 +239,9 @@
 
 
 (defn roll-saves [defender-unit weapon hits]
+  (println (count hits) (-> weapon :specialRules :deadly))
   (->> (for [_ hits]
-         (when (< (roll-defender)
-                  (+ (:defense defender-unit) (or (-> weapon :specialRules :ap) 0)))
+         (when (< (roll-defender) (+ (:defense defender-unit) (or (-> weapon :specialRules :ap) 0)))
            (or (-> weapon :specialRules :deadly) 1)))
        (remove nil?)
        (regeneration-rolls defender-unit)))
