@@ -1,1 +1,489 @@
-{"gameSystem":"gf","armyId":"z65fgu0l29i4lnlu","armyIds":["z65fgu0l29i4lnlu"],"armyFaction":null,"armyName":"Human Defense Force","modified":"2022-05-01T16:04:25.416Z","saveVersion":3,"listPoints":1600,"list":{"creationTime":"1651420890684","name":"tournament","pointsLimit":1600,"units":[{"id":"3Tk4911","armyId":"z65fgu0l29i4lnlu","selectionId":"4K1cD","selectedUpgrades":[{"instanceId":"P1pX0OdWo","upgradeId":"r5XpHsA","optionId":"EUJTz"},{"instanceId":"Oud1ICzIe","upgradeId":"ZA87jdg","optionId":"Lx-NMlS"},{"instanceId":"lAB_pHZ7Y","upgradeId":"wxW9CcN","optionId":"eOm7bL4"}],"combined":false,"joinToUnit":"U1GPJ"},{"id":"97ShHAa","armyId":"z65fgu0l29i4lnlu","selectionId":"U1GPJ","selectedUpgrades":[],"combined":true,"joinToUnit":null},{"id":"97ShHAa","armyId":"z65fgu0l29i4lnlu","selectionId":"gJLJ0","selectedUpgrades":[],"combined":true,"joinToUnit":"U1GPJ"},{"id":"97ShHAa","armyId":"z65fgu0l29i4lnlu","selectionId":"_CX4V","selectedUpgrades":[],"combined":true,"joinToUnit":null},{"id":"3Tk4911","armyId":"z65fgu0l29i4lnlu","selectionId":"84EVB","selectedUpgrades":[{"instanceId":"P1pX0OdWo","upgradeId":"r5XpHsA","optionId":"EUJTz"}],"combined":false,"joinToUnit":"_CX4V"},{"id":"97ShHAa","armyId":"z65fgu0l29i4lnlu","selectionId":"jia2y","selectedUpgrades":[],"combined":true,"joinToUnit":"_CX4V"},{"id":"08ymvzA","armyId":"z65fgu0l29i4lnlu","selectionId":"_KKnv","selectedUpgrades":[{"instanceId":"QbrxWW89w","upgradeId":"rOXPGDt","optionId":"9gyfb1p"}],"combined":false,"joinToUnit":null},{"id":"W35Ba5E","armyId":"z65fgu0l29i4lnlu","selectionId":"vCJZl","selectedUpgrades":[{"instanceId":"Eo0JWiYQb","upgradeId":"ZPwccxH","optionId":"DpYA2ov"},{"instanceId":"hNVxQSa9l","upgradeId":"ZALCUSj","optionId":"HnkcwEk"}],"combined":false,"joinToUnit":null},{"id":"Xuu-drz","armyId":"z65fgu0l29i4lnlu","selectionId":"GCkaZ","selectedUpgrades":[{"instanceId":"PDsThJX83","upgradeId":"byolukJ","optionId":"YyOOiXu"},{"instanceId":"LaAc6cTDG","upgradeId":"byolukJ","optionId":"YyOOiXu"},{"instanceId":"oHv2i2NMv","upgradeId":"gIlVzz3","optionId":"CMe32-3"}],"combined":true,"joinToUnit":null},{"id":"Xuu-drz","armyId":"z65fgu0l29i4lnlu","selectionId":"5TEgM","selectedUpgrades":[{"instanceId":"PDsThJX83","upgradeId":"byolukJ","optionId":"YyOOiXu"},{"instanceId":"LaAc6cTDG","upgradeId":"byolukJ","optionId":"YyOOiXu"},{"instanceId":"oHv2i2NMv","upgradeId":"gIlVzz3","optionId":"CMe32-3"}],"combined":true,"joinToUnit":"GCkaZ"},{"id":"Xuu-drz","armyId":"z65fgu0l29i4lnlu","selectionId":"L24hf","selectedUpgrades":[{"instanceId":"cnL9TsLZC","upgradeId":"gIlVzz3","optionId":"CMe32-3"}],"combined":false,"joinToUnit":null}],"selectedUnitId":"4K1cD","undoUnitRemove":[{"id":"Xuu-drz","cost":110,"name":"Storm Troopers","size":5,"defense":4,"quality":4,"upgrades":["B1","D1","I1"],"equipment":[{"id":"-NkXS","name":"CCWs","label":"CCWs","attacks":1,"specialRules":[],"count":5,"originalCount":5,"type":"ArmyBookWeapon"},{"id":"x_xK0","name":"Heavy Rifles","label":"Heavy Rifles","range":24,"attacks":1,"specialRules":[{"key":"ap","name":"AP","rating":"1","modify":false}],"count":5,"originalCount":5,"type":"ArmyBookWeapon","dependencies":[{"upgradeInstanceId":"PDsThJX83","count":1,"type":"replace"},{"upgradeInstanceId":"LaAc6cTDG","count":1,"type":"replace"}]}],"specialRules":[{"key":"strider","name":"Strider","rating":""}],"disabledUpgradeSections":[],"selectedUpgrades":[{"instanceId":"PDsThJX83","upgrade":{"id":"8po9NXH","uid":"byolukJ","type":"replace","label":"Replace up to two Heavy Rifles","options":null,"parentPackageUid":"I1","select":2,"replaceWhat":["Heavy Rifles"],"isCommandGroup":false},"option":{"uid":"YyOOiXu","cost":25,"type":"ArmyBookUpgradeOption","gains":[{"name":"Heavy Volley Gun","type":"ArmyBookWeapon","label":"Heavy Volley Gun (24”, A4, AP(1))","range":24,"attacks":4,"specialRules":[{"key":"ap","name":"AP","type":"ArmyBookRule","label":"AP(1)","rating":"1"}],"count":1,"dependencies":[]}],"label":"Heavy Volley Gun (24”, A4, AP(1))","isModel":false,"id":"YyOOiXu","parentSectionId":"byolukJ"}},{"instanceId":"LaAc6cTDG","upgrade":{"id":"8po9NXH","uid":"byolukJ","type":"replace","label":"Replace up to two Heavy Rifles","options":null,"parentPackageUid":"I1","select":2,"replaceWhat":["Heavy Rifles"],"isCommandGroup":false},"option":{"uid":"YyOOiXu","cost":25,"type":"ArmyBookUpgradeOption","gains":[{"name":"Heavy Volley Gun","type":"ArmyBookWeapon","label":"Heavy Volley Gun (24”, A4, AP(1))","range":24,"attacks":4,"specialRules":[{"key":"ap","name":"AP","type":"ArmyBookRule","label":"AP(1)","rating":"1"}],"count":1,"dependencies":[]}],"label":"Heavy Volley Gun (24”, A4, AP(1))","isModel":false,"id":"YyOOiXu","parentSectionId":"byolukJ"}},{"instanceId":"oHv2i2NMv","upgrade":{"id":"S4R-Fpd","uid":"gIlVzz3","type":"upgrade","label":"Upgrade all models with","options":null,"parentPackageUid":"I1","model":true,"affects":"all","isCommandGroup":false},"option":{"uid":"CMe32-3","cost":15,"type":"ArmyBookUpgradeOption","gains":[{"name":"Drop Troopers","type":"ArmyBookItem","label":"Drop Troopers (Ambush)","content":[{"key":"ambush","name":"Ambush","type":"ArmyBookRule","label":"Ambush","rating":"","count":1,"dependencies":[]}],"count":1,"dependencies":[]}],"label":"Drop Troopers (Ambush)","isModel":false,"id":"CMe32-3","parentSectionId":"gIlVzz3"}}],"sortId":7,"armyId":"z65fgu0l29i4lnlu","selectionId":"wS_hV","combined":false,"joinToUnit":null,"loadout":[{"id":"-NkXS","name":"CCWs","label":"CCWs","attacks":1,"specialRules":[],"count":5,"originalCount":5,"type":"ArmyBookWeapon"},{"id":"x_xK0","name":"Heavy Rifles","label":"Heavy Rifles","range":24,"attacks":1,"specialRules":[{"key":"ap","name":"AP","rating":"1","modify":false}],"count":3,"originalCount":5,"type":"ArmyBookWeapon","dependencies":[{"upgradeInstanceId":"PDsThJX83","count":1,"type":"replace"},{"upgradeInstanceId":"LaAc6cTDG","count":1,"type":"replace"}]},{"name":"Heavy Volley Gun","type":"ArmyBookWeapon","label":"Heavy Volley Gun (24”, A4, AP(1))","range":24,"attacks":4,"specialRules":[{"key":"ap","name":"AP","type":"ArmyBookRule","label":"AP(1)","rating":"1"}],"count":1,"dependencies":[]},{"name":"Heavy Volley Gun","type":"ArmyBookWeapon","label":"Heavy Volley Gun (24”, A4, AP(1))","range":24,"attacks":4,"specialRules":[{"key":"ap","name":"AP","type":"ArmyBookRule","label":"AP(1)","rating":"1"}],"count":1,"dependencies":[]},{"name":"Drop Troopers","type":"ArmyBookItem","label":"Drop Troopers (Ambush)","content":[{"key":"ambush","name":"Ambush","type":"ArmyBookRule","label":"Ambush","rating":"","count":1,"dependencies":[]}],"count":5,"dependencies":[]}]}],"points":1600,"unitPreview":null},"favourite":false}
+{
+  "gameSystem": "gf",
+  "armyId": "z65fgu0l29i4lnlu",
+  "armyIds": [
+    "z65fgu0l29i4lnlu"
+  ],
+  "armyFaction": null,
+  "armyName": "Human Defense Force",
+  "modified": "2022-05-01T16:04:25.416Z",
+  "saveVersion": 3,
+  "listPoints": 1600,
+  "list": {
+    "creationTime": "1651420890684",
+    "name": "tournament",
+    "pointsLimit": 1600,
+    "units": [
+      {
+        "id": "3Tk4911",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "4K1cD",
+        "selectedUpgrades": [
+          {
+            "instanceId": "P1pX0OdWo",
+            "upgradeId": "r5XpHsA",
+            "optionId": "EUJTz"
+          },
+          {
+            "instanceId": "Oud1ICzIe",
+            "upgradeId": "ZA87jdg",
+            "optionId": "Lx-NMlS"
+          },
+          {
+            "instanceId": "lAB_pHZ7Y",
+            "upgradeId": "wxW9CcN",
+            "optionId": "eOm7bL4"
+          }
+        ],
+        "combined": false,
+        "joinToUnit": "U1GPJ"
+      },
+      {
+        "id": "97ShHAa",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "U1GPJ",
+        "selectedUpgrades": [],
+        "combined": true,
+        "joinToUnit": null
+      },
+      {
+        "id": "97ShHAa",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "gJLJ0",
+        "selectedUpgrades": [],
+        "combined": true,
+        "joinToUnit": "U1GPJ"
+      },
+      {
+        "id": "97ShHAa",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "_CX4V",
+        "selectedUpgrades": [],
+        "combined": true,
+        "joinToUnit": null
+      },
+      {
+        "id": "3Tk4911",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "84EVB",
+        "selectedUpgrades": [
+          {
+            "instanceId": "P1pX0OdWo",
+            "upgradeId": "r5XpHsA",
+            "optionId": "EUJTz"
+          }
+        ],
+        "combined": false,
+        "joinToUnit": "_CX4V"
+      },
+      {
+        "id": "97ShHAa",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "jia2y",
+        "selectedUpgrades": [],
+        "combined": true,
+        "joinToUnit": "_CX4V"
+      },
+      {
+        "id": "08ymvzA",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "_KKnv",
+        "selectedUpgrades": [
+          {
+            "instanceId": "QbrxWW89w",
+            "upgradeId": "rOXPGDt",
+            "optionId": "9gyfb1p"
+          }
+        ],
+        "combined": false,
+        "joinToUnit": null
+      },
+      {
+        "id": "W35Ba5E",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "vCJZl",
+        "selectedUpgrades": [
+          {
+            "instanceId": "Eo0JWiYQb",
+            "upgradeId": "ZPwccxH",
+            "optionId": "DpYA2ov"
+          },
+          {
+            "instanceId": "hNVxQSa9l",
+            "upgradeId": "ZALCUSj",
+            "optionId": "HnkcwEk"
+          }
+        ],
+        "combined": false,
+        "joinToUnit": null
+      },
+      {
+        "id": "Xuu-drz",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "GCkaZ",
+        "selectedUpgrades": [
+          {
+            "instanceId": "PDsThJX83",
+            "upgradeId": "byolukJ",
+            "optionId": "YyOOiXu"
+          },
+          {
+            "instanceId": "LaAc6cTDG",
+            "upgradeId": "byolukJ",
+            "optionId": "YyOOiXu"
+          },
+          {
+            "instanceId": "oHv2i2NMv",
+            "upgradeId": "gIlVzz3",
+            "optionId": "CMe32-3"
+          }
+        ],
+        "combined": true,
+        "joinToUnit": null
+      },
+      {
+        "id": "Xuu-drz",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "5TEgM",
+        "selectedUpgrades": [
+          {
+            "instanceId": "PDsThJX83",
+            "upgradeId": "byolukJ",
+            "optionId": "YyOOiXu"
+          },
+          {
+            "instanceId": "LaAc6cTDG",
+            "upgradeId": "byolukJ",
+            "optionId": "YyOOiXu"
+          },
+          {
+            "instanceId": "oHv2i2NMv",
+            "upgradeId": "gIlVzz3",
+            "optionId": "CMe32-3"
+          }
+        ],
+        "combined": true,
+        "joinToUnit": "GCkaZ"
+      },
+      {
+        "id": "Xuu-drz",
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "L24hf",
+        "selectedUpgrades": [
+          {
+            "instanceId": "cnL9TsLZC",
+            "upgradeId": "gIlVzz3",
+            "optionId": "CMe32-3"
+          }
+        ],
+        "combined": false,
+        "joinToUnit": null
+      }
+    ],
+    "selectedUnitId": "4K1cD",
+    "undoUnitRemove": [
+      {
+        "id": "Xuu-drz",
+        "cost": 110,
+        "name": "Storm Troopers",
+        "size": 5,
+        "defense": 4,
+        "quality": 4,
+        "upgrades": [
+          "B1",
+          "D1",
+          "I1"
+        ],
+        "equipment": [
+          {
+            "id": "-NkXS",
+            "name": "CCWs",
+            "label": "CCWs",
+            "attacks": 1,
+            "specialRules": [],
+            "count": 5,
+            "originalCount": 5,
+            "type": "ArmyBookWeapon"
+          },
+          {
+            "id": "x_xK0",
+            "name": "Heavy Rifles",
+            "label": "Heavy Rifles",
+            "range": 24,
+            "attacks": 1,
+            "specialRules": [
+              {
+                "key": "ap",
+                "name": "AP",
+                "rating": "1",
+                "modify": false
+              }
+            ],
+            "count": 5,
+            "originalCount": 5,
+            "type": "ArmyBookWeapon",
+            "dependencies": [
+              {
+                "upgradeInstanceId": "PDsThJX83",
+                "count": 1,
+                "type": "replace"
+              },
+              {
+                "upgradeInstanceId": "LaAc6cTDG",
+                "count": 1,
+                "type": "replace"
+              }
+            ]
+          }
+        ],
+        "specialRules": [
+          {
+            "key": "strider",
+            "name": "Strider",
+            "rating": ""
+          }
+        ],
+        "disabledUpgradeSections": [],
+        "selectedUpgrades": [
+          {
+            "instanceId": "PDsThJX83",
+            "upgrade": {
+              "id": "8po9NXH",
+              "uid": "byolukJ",
+              "type": "replace",
+              "label": "Replace up to two Heavy Rifles",
+              "options": null,
+              "parentPackageUid": "I1",
+              "select": 2,
+              "replaceWhat": [
+                "Heavy Rifles"
+              ],
+              "isCommandGroup": false
+            },
+            "option": {
+              "uid": "YyOOiXu",
+              "cost": 25,
+              "type": "ArmyBookUpgradeOption",
+              "gains": [
+                {
+                  "name": "Heavy Volley Gun",
+                  "type": "ArmyBookWeapon",
+                  "label": "Heavy Volley Gun (24”, A4, AP(1))",
+                  "range": 24,
+                  "attacks": 4,
+                  "specialRules": [
+                    {
+                      "key": "ap",
+                      "name": "AP",
+                      "type": "ArmyBookRule",
+                      "label": "AP(1)",
+                      "rating": "1"
+                    }
+                  ],
+                  "count": 1,
+                  "dependencies": []
+                }
+              ],
+              "label": "Heavy Volley Gun (24”, A4, AP(1))",
+              "isModel": false,
+              "id": "YyOOiXu",
+              "parentSectionId": "byolukJ"
+            }
+          },
+          {
+            "instanceId": "LaAc6cTDG",
+            "upgrade": {
+              "id": "8po9NXH",
+              "uid": "byolukJ",
+              "type": "replace",
+              "label": "Replace up to two Heavy Rifles",
+              "options": null,
+              "parentPackageUid": "I1",
+              "select": 2,
+              "replaceWhat": [
+                "Heavy Rifles"
+              ],
+              "isCommandGroup": false
+            },
+            "option": {
+              "uid": "YyOOiXu",
+              "cost": 25,
+              "type": "ArmyBookUpgradeOption",
+              "gains": [
+                {
+                  "name": "Heavy Volley Gun",
+                  "type": "ArmyBookWeapon",
+                  "label": "Heavy Volley Gun (24”, A4, AP(1))",
+                  "range": 24,
+                  "attacks": 4,
+                  "specialRules": [
+                    {
+                      "key": "ap",
+                      "name": "AP",
+                      "type": "ArmyBookRule",
+                      "label": "AP(1)",
+                      "rating": "1"
+                    }
+                  ],
+                  "count": 1,
+                  "dependencies": []
+                }
+              ],
+              "label": "Heavy Volley Gun (24”, A4, AP(1))",
+              "isModel": false,
+              "id": "YyOOiXu",
+              "parentSectionId": "byolukJ"
+            }
+          },
+          {
+            "instanceId": "oHv2i2NMv",
+            "upgrade": {
+              "id": "S4R-Fpd",
+              "uid": "gIlVzz3",
+              "type": "upgrade",
+              "label": "Upgrade all models with",
+              "options": null,
+              "parentPackageUid": "I1",
+              "model": true,
+              "affects": "all",
+              "isCommandGroup": false
+            },
+            "option": {
+              "uid": "CMe32-3",
+              "cost": 15,
+              "type": "ArmyBookUpgradeOption",
+              "gains": [
+                {
+                  "name": "Drop Troopers",
+                  "type": "ArmyBookItem",
+                  "label": "Drop Troopers (Ambush)",
+                  "content": [
+                    {
+                      "key": "ambush",
+                      "name": "Ambush",
+                      "type": "ArmyBookRule",
+                      "label": "Ambush",
+                      "rating": "",
+                      "count": 1,
+                      "dependencies": []
+                    }
+                  ],
+                  "count": 1,
+                  "dependencies": []
+                }
+              ],
+              "label": "Drop Troopers (Ambush)",
+              "isModel": false,
+              "id": "CMe32-3",
+              "parentSectionId": "gIlVzz3"
+            }
+          }
+        ],
+        "sortId": 7,
+        "armyId": "z65fgu0l29i4lnlu",
+        "selectionId": "wS_hV",
+        "combined": false,
+        "joinToUnit": null,
+        "loadout": [
+          {
+            "id": "-NkXS",
+            "name": "CCWs",
+            "label": "CCWs",
+            "attacks": 1,
+            "specialRules": [],
+            "count": 5,
+            "originalCount": 5,
+            "type": "ArmyBookWeapon"
+          },
+          {
+            "id": "x_xK0",
+            "name": "Heavy Rifles",
+            "label": "Heavy Rifles",
+            "range": 24,
+            "attacks": 1,
+            "specialRules": [
+              {
+                "key": "ap",
+                "name": "AP",
+                "rating": "1",
+                "modify": false
+              }
+            ],
+            "count": 3,
+            "originalCount": 5,
+            "type": "ArmyBookWeapon",
+            "dependencies": [
+              {
+                "upgradeInstanceId": "PDsThJX83",
+                "count": 1,
+                "type": "replace"
+              },
+              {
+                "upgradeInstanceId": "LaAc6cTDG",
+                "count": 1,
+                "type": "replace"
+              }
+            ]
+          },
+          {
+            "name": "Heavy Volley Gun",
+            "type": "ArmyBookWeapon",
+            "label": "Heavy Volley Gun (24”, A4, AP(1))",
+            "range": 24,
+            "attacks": 4,
+            "specialRules": [
+              {
+                "key": "ap",
+                "name": "AP",
+                "type": "ArmyBookRule",
+                "label": "AP(1)",
+                "rating": "1"
+              }
+            ],
+            "count": 1,
+            "dependencies": []
+          },
+          {
+            "name": "Heavy Volley Gun",
+            "type": "ArmyBookWeapon",
+            "label": "Heavy Volley Gun (24”, A4, AP(1))",
+            "range": 24,
+            "attacks": 4,
+            "specialRules": [
+              {
+                "key": "ap",
+                "name": "AP",
+                "type": "ArmyBookRule",
+                "label": "AP(1)",
+                "rating": "1"
+              }
+            ],
+            "count": 1,
+            "dependencies": []
+          },
+          {
+            "name": "Drop Troopers",
+            "type": "ArmyBookItem",
+            "label": "Drop Troopers (Ambush)",
+            "content": [
+              {
+                "key": "ambush",
+                "name": "Ambush",
+                "type": "ArmyBookRule",
+                "label": "Ambush",
+                "rating": "",
+                "count": 1,
+                "dependencies": []
+              }
+            ],
+            "count": 5,
+            "dependencies": []
+          }
+        ]
+      }
+    ],
+    "points": 1600,
+    "unitPreview": null
+  },
+  "favourite": false
+}

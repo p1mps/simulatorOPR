@@ -1,6 +1,8 @@
 (ns p1mps.simulator.core-test
-  (:require  [clojure.test :refer :all]
-             [p1mps.simulator.core :as sut]))
+  (:require
+   [cheshire.core :as json]
+   [clojure.test :refer :all]
+   [p1mps.simulator.core :as sut]))
 
 (def weapon
   {:name "weapon"
@@ -147,9 +149,12 @@
 (def army-edn (read-string (slurp "army.edn")))
 (def merge-data-edn (read-string (slurp "merge-data.edn")))
 
+
+
 (deftest parse-file
   (testing "parse file correctly"
     (is (= army-edn (sut/parse-file (slurp "army.json"))))))
+
 
 
 (deftest merge-data
@@ -182,3 +187,94 @@
     (with-redefs [sut/roll-defender (fn [] 2)]
       (is (= '(3) (sut/roll-saves spacemarine weapon-deadly [1]))))
     ))
+
+
+(run-tests)
+
+
+
+
+(def army-id "z65fgu0l29i4lnlu")
+
+
+(def api-data
+  (-> (sut/get-army-data army-id)
+      :body
+      (json/parse-string true)))
+
+
+(def json-file
+  (slurp "specialweapons.json"))
+
+(def tts-file
+  (-> (slurp "tts.json") (json/parse-string true)))
+
+(->> (-> tts-file :units)
+     (map #(select-keys % [:name :size :quality :defense :loadout]))
+     (map #(clojure.set/rename-keys % {:loadout :weapons
+                                       :count :size}))
+     (map (fn [unit]
+            (update unit :weapons
+                       (fn [weapons]
+                         (map #(-> (update % :specialRules sut/parse-special-rules)
+                                   (clojure.set/rename-keys {:count :size})) weapons))))))
+
+(def data (sut/parse-file json-file))
+(def units (sut/merge-data (:units-file data) (:api-data data)))
+
+(def units-file (:units-file data))
+(def api-data (:api-data data))
+
+(for [unit units-file]
+  (let [unit-upgrades (map #(select-keys % [:optionId :upgradeId]) (:selectedUpgrades unit))
+               unit-data     (first (filter #(= (:id unit) (:id %)) (:units api-data)))
+               upgrades      (->> (mapcat #(sut/equipment->replacement api-data %) unit-upgrades)
+
+                                  (filter #(= (:type %) "ArmyBookWeapon")))
+               weapons (sut/parse-weapons unit-data (:equipment unit-data) upgrades)]
+           {:name         (:name unit-data)
+            ;;:unit unit
+            ;;:upgrades     upgrades
+            :quality      (:quality unit-data)
+            ;;:upgrades     upgrades
+            :equipment    (:equipment unit-data)
+            ;;:replacements replacements
+            :tough        (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
+            :defense      (:defense unit-data)
+            :size         (:size unit-data)
+            :combined     (:combined unit)
+            :specialRules (sut/parse-special-rules-unit (:specialRules unit-data))
+            :id           (:id unit-data)
+            :weapons      (->> weapons
+)}))
+
+
+
+
+
+
+(defn merge-data []
+  (for [unit units-file]
+    (let [unit-upgrades (map #(select-keys % [:optionId :upgradeId]) (:selectedUpgrades unit))
+          unit-data     (first (filter #(= (:id unit) (:id %)) (:units api-data)))
+          upgrades      (->> (mapcat #(equipment->replacement api-data %) unit-upgrades)
+
+                             (filter #(= (:type %) "ArmyBookWeapon"))
+                             )
+          weapons       (parse-weapons unit-data (:equipment unit-data) upgrades)]
+      {:name         (:name unit-data)
+       ;;:unit unit
+       ;;:upgrades     unit-upgrades
+       :quality      (:quality unit-data)
+       ;;:upgrades     upgrades
+       :equipment    (:equipment unit-data)
+       ;;:replacements replacements
+       :tough        (-> (filter #(= (:key %) "tough") (:specialRules unit-data)) first :rating)
+       :defense      (:defense unit-data)
+       :size         (:size unit-data)
+       :combined     (:combined unit)
+       :specialRules (sut/parse-special-rules-unit (:specialRules unit-data))
+       :id           (:id unit-data)
+       :weapons      weapons})))
+
+(merge-data)
