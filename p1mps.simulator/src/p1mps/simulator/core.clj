@@ -1,5 +1,3 @@
-;; TODO: parse different armies
-;; special weapons squads
 (ns p1mps.simulator.core
   (:require
    [integrant.core :as ig]
@@ -8,7 +6,7 @@
    [cheshire.core :as json]
    [yada.yada :as yada]))
 
-(def NUM_EXPERIMENTS 100)
+(def NUM_EXPERIMENTS 1)
 
 
 (def army-resource

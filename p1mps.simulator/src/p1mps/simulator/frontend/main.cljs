@@ -5,6 +5,8 @@
    [reagent.core :as r]
    [reagent.dom :as rdom]))
 
+(def DEBUG true)
+
 (defonce app-state (r/atom {}))
 
 (defn attacker-upload-ok [resp]
@@ -28,6 +30,28 @@
   (println "ERROR!" resp))
 
 
+(defn special-rules-attacker [unit]
+  (let [special-rules (keys (-> unit :specialRules))]
+    (loop [rule special-rules
+           result "-"]
+      (if (empty? rule)
+        result
+        (condp = (first rule)
+          :relentless (recur (rest rule) (str " Relentless " ))
+          :impact (recur (rest rule) (str " Impact " ))
+          (recur (rest rule) result))))))
+
+(defn special-rules-attacker-weapon [weapon]
+  (let [special-rules (keys (-> weapon :specialRules))]
+    (loop [rule special-rules
+           result "-"]
+      (if (empty? rule)
+        result
+        (condp = (first rule)
+          :impact (recur (rest rule) (str " Impact " ))
+          (recur (rest rule) result))))))
+
+
 (defn weapons-component [weapons]
   (for [weapon weapons]
     (let [index (.indexOf weapons weapon)]
@@ -37,7 +61,8 @@
          [:th "Weapon"]
          [:th "Attacks"]
          [:th "AP"]
-         [:th "N.Models"]]]
+         [:th "N.Models"]
+         [:th "Special Rules"]]]
        [:tbody
         [:tr
          [:th (or (:name weapon) (:label weapon))]
@@ -59,17 +84,8 @@
                                      [:attacker-selected :weapons index :specialRules :ap] ap)
                               (println (:attacker-selected @app-state))))
                           }]]
-         [:th [:input#ap {:type "text" :value (:size weapon) :class "input"
-                          :on-change
-                          (fn [e]
-                            (let [size (js/parseInt (-> e .-target .-value))]
-                              (swap! app-state
-                                     assoc-in
-                                     [:attacker-selected :weapons index :size] size)
-                              (println (:attacker-selected @app-state))))
-                          }]]]]])))
-
-
+         [:th (:size weapon)]
+         [:th (special-rules-attacker-weapon weapon)]]]])))
 
 
 (defn unit-component-attacker [unit]
@@ -78,7 +94,8 @@
     [:thead
      [:tr
       [:th "Quality"]
-      [:th "Size"]]]
+      [:th "Size"]
+      [:th "Special Rules"]]]
     [:tbody
      [:tr
       [:th
@@ -91,7 +108,8 @@
                                       [:attacker-selected unit-id] quality))
                              (println (:attacker-selected @app-state)))}]]
 
-      [:th (:size unit)]]]]
+      [:th (:size unit)]
+      [:th (special-rules-attacker unit)]]]]
    [:div (weapons-component (:weapons unit))]])
 
 (defn unit-component-defender [unit]
@@ -102,7 +120,9 @@
       [:th "Defense"]
       [:th "Regeneration"]
       [:th "Tough"]
-      [:th "Size"]]]
+      [:th "Size"]
+      [:th "Special Rules"]
+      ]]
     [:tbody
      [:tr
       [:th [:input {:type      "text" :value (:defense unit) :class "input"
@@ -120,7 +140,7 @@
                                      assoc-in
                                      [:defender-selected :specialRules :regeneration] regeneration))
                             (println (:defender-selected @app-state)))}]]
-      [:th (or (:tough unit) "-")]
+      [:th (or (-> unit :specialRules :tough) "-")]
       [:th (:size unit)]]]]])
 
 (defn graph-title [stats]
@@ -129,15 +149,15 @@
    " median value " (-> stats :stats :median)))
 
 (defn plot-graph []
+  (doseq [i (range 0 7)]
+    (set! (.-innerHTML (.getElementById js/document (str "graph" i))) ""))
   (let [data (vec
               (for [[weapon wounds] (-> @app-state :fight)]
                 (let [freqs (into (sorted-map) (frequencies (:values wounds)))]
                   {:y (vals freqs)
                    :x (keys freqs)
-
                    :stats (:stats wounds)
                    :name  weapon
-                                        ;:showlegend true
                    :type  "bars"})))]
 
     (doseq [i (range 0 (count data))]
@@ -198,6 +218,9 @@
       [:span.file-label "Defender army"]]
      [:span.file-name (last (string/split (get @app-state "Defender army") "\\"))]]])
 
+(defn name-unit-option [unit]
+  (str (:name unit) "-" (string/join " " (map :name (:weapons unit)))))
+
 (defn select-attacker []
    (when (:attacker-selected @app-state)
      [:div [:div.select.mt-5 {:key "1"}
@@ -211,7 +234,7 @@
                                 (swap! app-state assoc :attacker-selected unit)))}
              (doall (for [unit (:attacker @app-state)]
                       [:option {:id (.indexOf (:attacker @app-state) unit)
-                                :key (.indexOf (:attacker @app-state) unit)} (:name unit)]))]]
+                                :key (.indexOf (:attacker @app-state) unit)} (name-unit-option unit)]))]]
       [:div.mt-5.box.border-black {:key "2"}
        (unit-component-attacker (:attacker-selected @app-state))]]))
 
@@ -251,6 +274,12 @@
 
 (defn app-components []
   [:div
+   (when DEBUG
+     [:div
+      [:p (str (-> @app-state :fight))]
+      [:p (str "ATTACKER " (map #(select-keys % [:id :name :quality :specialRules]) (:attacker @app-state)) " "(map #(select-keys % [:name :size :count :specialRules]) (:weapons (:attacker-selected @app-state))))]
+      [:br]
+      [:p (str "DEFENDER " (map #(select-keys % [:id :name :defense :specialRules]) (:defender @app-state)) " "(map #(select-keys % [:name :size :count :specialRules]) (:weapons (:defender-selected @app-state))))]])
    (input-attacker-army)
    (input-defender-army)
    (select-attacker)
