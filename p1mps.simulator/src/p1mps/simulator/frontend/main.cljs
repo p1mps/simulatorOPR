@@ -172,8 +172,8 @@
    " expected wounds " (-> stats :stats :median)))
 
 (defn plot-graph []
-  (doseq [i (range 0 7)]
-    (set! (.-innerHTML (.getElementById js/document (str "graph" i))) ""))
+  (doseq [i (range 0 10)]
+      (.add (.-classList (.getElementById js/document (str "graph" i))) "no-display"))
   (let [data (vec
               (for [[weapon wounds] (-> @app-state :fight)]
                 (let [freqs (into (sorted-map) (frequencies (:values wounds)))]
@@ -182,14 +182,14 @@
                    :stats (:stats wounds)
                    :name  weapon
                    :type  "bars"})))]
-
     (doseq [i (range 0 (count data))]
       (js/Plotly.newPlot
        (.getElementById js/document (str "graph" i))
        (clj->js [(get data i)])
        (clj->js {:title (graph-title (get data i))
                  :xaxis {:title {:text "Wounds"}}
-                 :responsive true})))))
+                 :responsive true}))
+      (.remove (.-classList (.getElementById js/document (str "graph" i))) "no-display"))))
 
 (defn input-attacker-army []
   [:div
