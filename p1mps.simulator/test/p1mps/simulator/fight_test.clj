@@ -32,6 +32,11 @@
    :size 1
    :specialRules {:impact 1}})
 
+(def weapon-poison
+  {:name "weapon poison"
+   :attacks 1
+   :size    1
+   :specialRules {:poison true}})
 
 (def tank
   {:quality 4
@@ -82,6 +87,14 @@
   (assoc guardsman
          :weapons [weapon-impact]))
 
+(def guardsman-relentless
+  (assoc guardsman
+         :specialRules {:relentless true}))
+
+(def guardsman-poison
+  (assoc guardsman
+         :weapons [weapon-poison]))
+
 (def spacemarine
   {:size 1
    :defense 3})
@@ -124,7 +137,15 @@
     (with-redefs [sut/roll-attacker (fn [] 6)
                   sut/roll-defender (fn [] 2)]
       (is (= {"weapon impact" [4]} (sut/fight guardsman-impact spacemarines)))
-      (is (= {"weapon impact" [7]} (sut/fight (assoc guardsman-impact :specialRules {:impact true}) spacemarines))))))
+      (is (= {"weapon impact" [7]} (sut/fight (assoc guardsman-impact :specialRules {:impact true}) spacemarines)))))
+  (testing "fighting with relentless"
+    (with-redefs [sut/roll-attacker (fn [] 6)
+                  sut/roll-defender (fn [] 2)]
+      (is (= {"gun" [2]} (sut/fight guardsman-relentless spacemarines)))))
+  (testing "fighting with poison"
+    (with-redefs [sut/roll-attacker (fn [] 6)
+                  sut/roll-defender (fn [] 2)]
+      (is (= {"weapon poison" [3]} (sut/fight guardsman-poison spacemarines))))))
 
 (deftest run-experiments
   (testing "running n experiments"

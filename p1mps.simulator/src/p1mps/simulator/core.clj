@@ -6,7 +6,7 @@
    [cheshire.core :as json]
    [yada.yada :as yada]))
 
-(def NUM_EXPERIMENTS 1)
+(def NUM_EXPERIMENTS 1000)
 
 
 (def army-resource

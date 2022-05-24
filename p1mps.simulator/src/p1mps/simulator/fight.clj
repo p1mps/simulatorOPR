@@ -3,11 +3,13 @@
 
 (defn roll-attacker []
   (+ 1 (rand-int 6))
-  6)
+  ;;6
+  )
 
 (defn roll-defender []
   (+ 1 (rand-int 6))
-  1)
+  ;;1
+  )
 
 
 
@@ -34,7 +36,8 @@
 
 ;;TODO
 (defn special-rules-hits [attacker weapon hits]
-  (let [hits (if (-> weapon :specialRules :poison) (mapcat #(take 3 (repeat %)) hits) hits)
+  (let [hits (if (-> weapon :specialRules :poison)
+               (mapcat #(if (= % 6) (take 3 (repeat %)) [%]) hits) hits)
         hits (if (-> attacker :specialRules :relentless) (mapcat #(if (= % 6) (conj [] % (roll-attacker)) [%]) hits) hits)]
     hits))
 

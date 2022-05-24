@@ -5,7 +5,7 @@
    [reagent.core :as r]
    [reagent.dom :as rdom]))
 
-(def DEBUG true)
+(def DEBUG false)
 
 (defonce app-state (r/atom {}))
 
@@ -41,15 +41,21 @@
           :impact (recur (rest rule) (str " Impact " ))
           (recur (rest rule) result))))))
 
+(defn parse-rules [rules]
+  (let [rules [(when (:impact rules)
+                 "Impact ")
+               (when (:deadly rules)
+                 (str "Deadly " (:deadly rules)))
+               (when (:rending rules)
+                 (str "Rending"))]]
+    (remove nil? rules)))
+
 (defn special-rules-attacker-weapon [weapon]
-  (let [special-rules (keys (-> weapon :specialRules))]
-    (loop [rule special-rules
-           result "-"]
-      (if (empty? rule)
-        result
-        (condp = (first rule)
-          :impact (recur (rest rule) (str " Impact " ))
-          (recur (rest rule) result))))))
+  (let [parsed-rules (parse-rules (-> weapon :specialRules))]
+    (if (empty? parsed-rules)
+      "-"
+      (clojure.string/join #" "
+                         parsed-rules))))
 
 
 (defn weapons-component [weapons]
@@ -84,7 +90,14 @@
                                      [:attacker-selected :weapons index :specialRules :ap] ap)
                               (println (:attacker-selected @app-state))))
                           }]]
-         [:th (:size weapon)]
+         [:th [:input#ap {:type "text" :value (:size weapon) :class "input"
+                          :on-change
+                          (fn [e]
+                            (let [size (js/parseInt (-> e .-target .-value))]
+                              (swap! app-state
+                                     assoc-in
+                                     [:attacker-selected :weapons index :size] size)
+                              (println (:attacker-selected @app-state))))}]]
          [:th (special-rules-attacker-weapon weapon)]]]])))
 
 
@@ -101,16 +114,26 @@
       [:th
        [:input {:type      "text" :value (:quality unit) :class "input"
                 :on-change (fn [e]
-                             (let [quality (js/parseInt (-> e .-target .-value))
-                                   unit-id (js/parseInt (-> e .-target .-id))]
+                             (let [quality (js/parseInt (-> e .-target .-value))]
                                (swap! app-state
                                       assoc-in
-                                      [:attacker-selected unit-id] quality))
+                                      [:attacker-selected :quality] quality))
                              (println (:attacker-selected @app-state)))}]]
 
       [:th (:size unit)]
       [:th (special-rules-attacker unit)]]]]
    [:div (weapons-component (:weapons unit))]])
+
+(defn special-rules-defender [unit]
+  (let [special-rules (keys (-> unit :specialRules))]
+    (loop [rule special-rules
+           result "-"]
+      (if (empty? rule)
+        result
+        (condp = (first rule)
+          :tough (recur (rest rule) (str " Tough"))
+          (recur (rest rule) result))))))
+
 
 (defn unit-component-defender [unit]
   [:div
@@ -121,7 +144,7 @@
       [:th "Regeneration"]
       [:th "Tough"]
       [:th "Size"]
-      [:th "Special Rules"]
+      ;;[:th "Special Rules"]
       ]]
     [:tbody
      [:tr
@@ -146,7 +169,7 @@
 (defn graph-title [stats]
   (str
    (name (:name stats))
-   " median value " (-> stats :stats :median)))
+   " expected wounds " (-> stats :stats :median)))
 
 (defn plot-graph []
   (doseq [i (range 0 7)]
@@ -169,7 +192,8 @@
                  :responsive true})))))
 
 (defn input-attacker-army []
-  [:div.file.field.box
+  [:div
+   [:div.file.field.box
     [:label.file-label
      [:input.file-input
       {:id           "Attacker army"
@@ -177,7 +201,7 @@
        :type         "file"
        :defaultValue ""
        :on-change    (fn [e]
-                       (swap! app-state assoc "Attacker army" (-> e .-target .-value))
+                       (swap! app-state assoc :attacker-army (-> e .-target .-value))
                        (let [attacker-army (.getElementById js/document "Attacker army")
                              attacker-file (aget (.-files attacker-army) 0)
 
@@ -192,7 +216,28 @@
      [:span.file-cta
       [:span.file-icon [:i.fas.fa-upload]]
       [:span.file-label "Attacker army"]]
-     [:span.file-name (last (string/split (get @app-state "Attacker army") "\\"))]]])
+     [:span.file-name (last (string/split (get @app-state :attacker-army) "\\"))]]]
+   [:button.button.m-5
+    {:on-click (fn [ev]
+                 (.preventDefault ev)
+                 (let [attacker-selected (-> @app-state :attacker-selected)
+                       attacker          (-> @app-state :attacker)
+                       attacker-army     (-> @app-state :attacker-army)
+                       defender-selected (-> @app-state :defender-selected)
+                       defender          (-> @app-state :defender)
+                       defender-army     (-> @app-state :defender-army)]
+                   (swap! app-state assoc :attacker defender)
+                   (swap! app-state assoc :attacker-selected defender-selected)
+                   (swap! app-state assoc :attacker-army defender-army)
+
+                   (swap! app-state assoc :defender-selected attacker-selected)
+                   (swap! app-state assoc :defender attacker)
+                   (swap! app-state assoc :defender-army attacker-army)
+
+                   )
+
+                 )}
+    [:span.file-icon [:i.fas.fa-arrows-alt-v]] "Swap"]])
 
 (defn input-defender-army []
   [:div.file.field.box
@@ -202,7 +247,7 @@
                          :type         "file"
                          :defaultValue ""
                          :on-change    (fn [e]
-                                         (swap! app-state assoc "Defender army" (-> e .-target .-value))
+                                         (swap! app-state assoc :defender-army (-> e .-target .-value))
                                          (let [defender-army      (.getElementById js/document "Defender army")
                                                defender-file      (aget (.-files defender-army) 0)
                                                form-data-defender (js/FormData.)
@@ -216,7 +261,7 @@
      [:span.file-cta
       [:span.file-icon [:i.fas.fa-upload]]
       [:span.file-label "Defender army"]]
-     [:span.file-name (last (string/split (get @app-state "Defender army") "\\"))]]])
+     [:span.file-name (last (string/split (get @app-state :defender-army) "\\"))]]])
 
 (defn name-unit-option [unit]
   (str (:name unit) "-" (string/join " " (map :name (:weapons unit)))))
@@ -240,20 +285,21 @@
 
 (defn select-defender []
   (when (:defender-selected @app-state)
-     [:div [:div.select.mt-5 {:key "1"}
-            [:select
-             {:id           "defenders"
-              :defaultValue ""
-              :on-change    (fn [_]
-                              (let [e    (js/document.getElementById "defenders")
-                                    id   (js/parseInt (.-id (aget (.-options e) (.-selectedIndex e))))
-                                    unit (get (:defender @app-state) id)]
-                                (swap! app-state assoc :defender-selected unit)))}
-             (doall (for [unit (:defender @app-state)]
-                      [:option {:id (.indexOf (:defender @app-state) unit)
-                                :key (.indexOf (:defender @app-state) unit)} (:name unit)]))]]
-      [:div.mt-5.box.border-black {:key "2"}
-       (unit-component-defender (:defender-selected @app-state))]]))
+    [:div
+     [:div.select.mt-5 {:key "1"}
+      [:select {:id           "defenders"
+                :defaultValue ""
+                :on-change    (fn [_]
+                                (let [e    (js/document.getElementById "defenders")
+                                      id   (js/parseInt (.-id (aget (.-options e) (.-selectedIndex e))))
+                                      unit (get (:defender @app-state) id)]
+                                  (swap! app-state assoc :defender-selected unit)))}
+       (doall (for [unit (:defender @app-state)]
+                [:option {:id  (.indexOf (:defender @app-state) unit)
+                          :key (.indexOf (:defender @app-state) unit)} (:name unit)]))]
+      ]
+     [:div.mt-5.box.border-black {:key "2"}
+      (unit-component-defender (:defender-selected @app-state))]]))
 
 (defn fight []
   (when (and (:attacker-selected @app-state) (:defender-selected @app-state))
@@ -267,9 +313,9 @@
                                               :format          :json
                                               :response-format (json-response-format {:keywords? true})})
                           )}
-             "Fight!"]]
-      (when (-> @app-state :fight)
-        (plot-graph))]))
+             "Fight!"]
+            (when (-> @app-state :fight)
+              (plot-graph))]]))
 
 
 (defn app-components []
@@ -277,9 +323,9 @@
    (when DEBUG
      [:div
       [:p (str (-> @app-state :fight))]
-      [:p (str "ATTACKER " (map #(select-keys % [:id :name :quality :specialRules]) (:attacker @app-state)) " "(map #(select-keys % [:name :size :count :specialRules]) (:weapons (:attacker-selected @app-state))))]
+      [:p (str "ATTACKER " (:attacker-selected @app-state))]
       [:br]
-      [:p (str "DEFENDER " (map #(select-keys % [:id :name :defense :specialRules]) (:defender @app-state)) " "(map #(select-keys % [:name :size :count :specialRules]) (:weapons (:defender-selected @app-state))))]])
+      [:p (str "DEFENDER " (:defender-selected @app-state))]])
    (input-attacker-army)
    (input-defender-army)
    (select-attacker)
