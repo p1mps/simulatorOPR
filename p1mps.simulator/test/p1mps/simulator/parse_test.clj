@@ -20,3 +20,14 @@
 
 
 (run-tests)
+
+
+(def data (->
+           (slurp "combined.json")
+           (cheshire.core/parse-string true)
+           (sut/parse-data)))
+
+
+(map (fn [units]
+       (map :name units))
+     (vals data))

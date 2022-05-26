@@ -48,9 +48,10 @@
 
 (defn parse-data [json]
   (->> (-> json :units)
+       (map #(assoc % :originalSpecialRules (:specialRules %)))
        (map #(update % :specialRules (partial parse-special-rules-unit)))
        (map #(s/rename-keys % {:loadout :weapons
-                                         :count   :size}))
+                               :count   :size}))
        (map #(update % :weapons
                      (fn [weapons]
                        (->>
@@ -62,4 +63,21 @@
                                                 (update (first weapons) :specialRules (partial parse-special-rules))
                                                 :size (apply + (map :count weapons)))))
                                 [])))))
+       (group-by :combined)
+       (reduce (fn [result [combined units]]
+                 (concat result (if combined
+                                (partition 2 units)
+                                [units])))
+               [])
+       (map #(group-by :selectionId %))
+       (apply merge-with concat)
+       (reduce-kv (fn [result _ unit]
+                    (if (:joinToUnit (first unit))
+                      (update result (:joinToUnit (first unit)) #(concat % unit))
+                      (update result (:selectionId (first unit)) #(concat % unit))))
+                  {})
+       (vals)
+
+
+
        ))

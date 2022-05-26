@@ -56,4 +56,6 @@
     ))
 
 
+(slurp "army.json")
+
 (run-tests)

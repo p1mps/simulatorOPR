@@ -27,7 +27,7 @@
         wounds)))
 
 (defn max-hits-blast [weapon defender]
-  (min (or (-> :specialRules weapon :blast) 1) (:size defender)))
+  (min (or (-> :specialRules weapon :blast) 1) (reduce + (map :size defender))))
 
 (defn filter-hits [attacker-unit hits]
   (filter #(>= % (:quality attacker-unit)) hits))
@@ -56,7 +56,7 @@
   (flatten (->> (for [hit hits]
                   (when (< (roll-defender)
                            (+
-                            (:defense defender-unit)
+                            (apply max (map :defense defender-unit))
                             (ap weapon hit impact-hits)))
                     (or (-> weapon :specialRules :deadly) 1)))
                 (remove nil?))))
@@ -92,10 +92,11 @@
    (apply
     merge-with
     into
-    (for [weapon (:weapons attacker)]
-      {(:name weapon) (roll-saves
-                       (roll-hits attacker weapon defender)
-                       weapon attacker defender)}))
+    (for [attacker attacker
+          weapon (:weapons attacker)]
+      {(str (:name attacker) " " (:name weapon)) (roll-saves
+                         (roll-hits attacker weapon defender)
+                         weapon attacker defender)}))
    (sum-wounds)))
 
 (defn run-experiments [attacker defender n]
